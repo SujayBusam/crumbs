@@ -1,6 +1,6 @@
 import re
 
-tmp = open("../crumbs/views/index.ejs")
+tmp = open("../../crumbs/views/index.ejs")
 header = ""
 footer = ""
 headerFlag = True

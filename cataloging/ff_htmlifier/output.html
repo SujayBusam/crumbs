@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html>
+	<head>
+        <title>Nibbles</title>
+				<meta charset="utf-8">
+
+				<!-- jQuery -->
+				<script src="http://thecodeplayer.com/uploads/js/jquery-1.9.1.min.js" type="text/javascript"></script>
+				<!-- jQuery easing plugin -->
+			  <script src="http://thecodeplayer.com/uploads/js/jquery.easing.min.js" type="text/javascript"></script>
+				<!-- JQuery payment -->
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.payment/1.2.3/jquery.payment.min.js" type="text/javascript"></script>
+				<script src="sweetalert/lib/sweet-alert.min.js"></script> 
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js" type="text/javascript"></script>
+				<link rel="stylesheet" type="text/css" href="sweetalert/lib/sweet-alert.css">
+				<link rel="stylesheet" type="text/css" href="nibbles.css">	
+				<link rel="stylesheet" type="text/css" href="payment.css">	
+				<link rel="stylesheet" type="text/css" href="suggestion.css">
+				<script type="text/javascript" src="reviews.json"></script>
+	</head>
+	<body>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-62507743-1', 'auto');
+	ga(‘set’, ‘&uid’, {{USER_ID}}); // Set the user ID using signed-in user_id.
+  ga('send', 'pageview');
+
+</script>	
+	<script>
+referralCode = "";
+referralApproval = false;
+
+totalCost = 0.0;
+totalItems = {};
+
+function timeStamp() {
+// Create a date object with the current time
+  var now = new Date();
+ 
+// Create an array with the current month, day and time
+  var date = [ now.getMonth() + 1, now.getDate(), now.getFullYear() ];
+ 
+// Create an array with the current hour, minute and second
+  var time = [ now.getHours(), now.getMinutes(), now.getSeconds() ];
+ 
+// Determine AM or PM suffix based on the hour
+  var suffix = ( time[0] < 12 ) ? "AM" : "PM";
+ 
+// Convert hour from military time
+  time[0] = ( time[0] < 12 ) ? time[0] : time[0] - 12;
+ 
+// If hour is 0, set it to 12
+  time[0] = time[0] || 12;
+ 
+// If seconds and minutes are less than 10, add a zero
+  for ( var i = 1; i < 3; i++ ) {
+    if ( time[i] < 10 ) {
+      time[i] = "0" + time[i];
+    }
+  }
+ 
+// Return the formatted string
+	if (!referralApproval) {
+  	return date.join("/") + " " + time.join(":") + " " + suffix;
+	}
+	else {
+  	return date.join("/") + " " + time.join(":") + " " + suffix + " " + referralCode;
+	}
+}
+
+function getTotalCost() {
+	runningCost = 0.0;
+	$(".shoppingquantity").each(function(i, obj) {
+		var price = $(obj).siblings('.shoppingprice').text().substring(1);
+		var quantity = $(obj).val();
+		runningCost = runningCost + price * quantity;
+	});
+	return runningCost.toFixed(2);
+}
+
+function getAbsoluteCost() {
+	if (!referralApproval) {
+		var total = parseFloat(getTotalCost());
+		return (total + 2.00).toFixed(2);
+	}
+	else {
+		var total = parseFloat(getTotalCost());
+		$("#bulkmsg").show();
+		return ((total + 2.00)* 0.9).toFixed(2);
+	}
+}
+
+function getSummary() {
+	res = {};
+	res['cost'] = getAbsoluteCost(); //(parseFloat(getTotalCost()) + 5.00).toFixed(2);
+	res['items'] = [];
+	res['quantities'] = [];
+	res['itemcost'] = [];
+	$(".shoppingquantity").each(function(i, obj) {
+			var quantity = $(obj).val();
+			if (quantity > 0) {
+				var restaurant = $(obj).parent().parent().parent().text().split("\n")[0] + " ";
+				res['items'].push(restaurant + $(obj).siblings('.shoppingitemname').text());
+				res['quantities'].push(quantity);
+				res['itemcost'].push((quantity * $(obj).siblings('.shoppingprice').text().substring(1)).toFixed(2));
+			}
+	});
+	res['items'].push("NOTES: " + $("#notes").val());
+	res['quantities'].push(1);
+	res['itemcost'].push(0);
+	res['dormname'] = $("#dormname").val();
+	res['dormnumber'] = $("#dormnumber").val();
+	res['timestamp'] = timeStamp();
+	return res;
+}
+
+function prepareList() {
+  $('#expList').find('li:has(ul)')
+  	.click( function(event) {
+  		if (this == event.target) {
+  			$(this).toggleClass('expanded');
+  			$(this).children('ul').toggle('medium');
+  		}
+  		return false;
+  	})
+  	.addClass('collapsed')
+  	.children('ul').hide();
+  };
+ 
+
+function validateDetails() {
+		// set variables for the expiry date validation, cvc validation and expiry date 'splitter'
+		var expiry = $('.cc-exp').payment('cardExpiryVal');
+		var validateExpiry = $.payment.validateCardExpiry(expiry["month"], expiry["year"]);
+		var validateCVC = $.payment.validateCardCVC($('.cc-cvc').val());
+		// if statement on whether the card’s expiry is valid or not
+
+		var cardType = $.payment.cardType($('input.cc-num').val());
+		console.log(cardType);
+		if (cardType === "amex") {
+			$('.card').css('background', "url('cards/amex.png')");
+			$('.card').show();
+		}
+		else if (cardType === "visa") {
+			$('.card').css('background', "url('cards/visa.png')");
+			$('.card').show();
+		}
+		else if (cardType === "mastercard") {
+			$('.card').css('background', "url('cards/mastercard.png')");
+			$('.card').show();
+		}
+		else if (cardType === "discover") {
+			$('.card').css('background', "url('cards/discover.png')");
+			$('.card').show();
+		}
+		else {
+			$('.card').hide();
+		}
+
+}
+
+
+$(window).on('resize', function() {
+	$("#advertisingdiv").css("height", $("#advertisingtext").height());
+	});
+
+
+$(document).ready(function() {
+		setTimeout( function() {
+			$("#advertisingdiv").css("height", $("#advertisingtext").height());
+			}, 2000);
+$("#advertisingdiv").css("height", $("#advertisingtext").height());
+
+$("#advertisingclose").click(function() {
+	$("#slideshowdiv").show();
+	$("#advertisingdiv").hide();
+	});
+
+totalitems = $.find('.shoppingitemname').length;
+
+function changeSlideshow() {
+	var n = Math.floor(Math.random() * totalitems);
+	console.log($(".shoppingitemname").eq(n).data("imgpath"));
+	$("#slideshow").attr("src", $(".shoppingitemname").eq(n).data("imgpath"));
+}
+function changeReview() {
+	var n = Math.floor(Math.random() * reviews.length);
+	$("#reviewspan").text('"' + reviews[n] + '"');
+	}
+
+changeSlideshow();
+timer = setInterval(changeSlideshow, 2500);
+changeReview();
+reviewtimer = setInterval(changeReview, 5000);
+		
+//jQuery time
+var current_fs, next_fs, previous_fs; //fieldsets
+var left, opacity, scale; //fieldset properties which we will animate
+var animating; //flag to prevent quick multi-click glitches
+
+prepareList();
+
+$('.startpage').click(function() {
+	clearInterval(timer);
+	clearInterval(reviewtimer);
+});
+
+$('.afterstartpage').click(function() {
+	timer = setInterval(changeSlideshow, 2500);
+	reviewtimer = setInterval(changeReview, 5000);
+});
+
+$('.alert-close').on('click', function(c){
+		$(this).parent().fadeOut('slow', function(c){
+		});
+});	
+
+
+$('input.cc-num').payment('formatCardNumber');
+$('input.cc-exp').payment('formatCardExpiry');
+$('input.cc-cvc').payment('formatCardCVC');
+$('.shoppingquantity').payment('restrictNumeric');
+
+$("#collapseall").click(function() {
+	$("#expList").find('li:has(ul)').removeClass('expanded').children('ul').hide();
+	});
+ 
+// this runs the above function every time stuff is entered into the card inputs
+$('.paymentInput').bind('change paste keyup', function() {
+validateDetails();
+}); 
+
+$('.shoppingquantity').bind('change paste keyup', function() {
+	$('.runningtotal').text('$' + getTotalCost());
+	$('.actualtotal').text('$' + getAbsoluteCost()); //(parseFloat(getTotalCost()) + 5.00).toFixed(2));
+});
+
+$(".shoppingquantity").hover(function(e){
+	$("#preview_img").attr('src', $(this).siblings(".shoppingitemname").data("imgpath"));
+	$("#preview_img").css('height', "150px");
+	$("#preview_img").css('width', "150px");
+	$("#item_preview").show();
+	$("#suggestion_box").hide();
+}, function() {$("#item_preview").hide(); $("#suggestion_box").show();});
+	
+
+$(".shoppingitemname").hover(function(e){
+	$("#preview_img").attr('src', $(this).data("imgpath"));
+	$("#preview_img").css('height', "150px");
+	$("#preview_img").css('width', "150px");
+	$("#item_preview").show();
+	$("#suggestion_box").hide();
+}, function() {$("#item_preview").hide(); $("#suggestion_box").show();});
+
+$(".shoppingitemname").click(function(e) {
+		var oldval = $(this).siblings(".shoppingquantity").val();
+		if (!oldval) {
+		  $(this).siblings(".shoppingquantity").val(1);
+		}
+		else {
+		  $(this).siblings(".shoppingquantity").val(parseInt(oldval) + 1);
+		}
+	$('.runningtotal').text('$' + getTotalCost());
+	$('.actualtotal').text('$' + getAbsoluteCost()); //(parseFloat(getTotalCost()) + 5.00).toFixed(2));
+});
+	
+
+$(".next").click(function(){
+	if(animating) return false;
+	if($(this).hasClass('locationpage')) {
+		if ($("#dormname").val().length === 0) {
+			swal({   title: "Please enter your dorm name.",   type: "info",   confirmButtonText: "Okay!" });
+			return false;
+		}
+		if ($("#dormnumber").val().length === 0) {
+			swal({   title: "Please enter your dorm number.",   type: "info",   confirmButtonText: "Okay!" });
+			return false;
+		}
+	}
+	if($(this).hasClass('itemspage')) {
+	  if (getTotalCost() === "0.00") {
+			swal({   title: "You didn't order anything!", text: "To order something, type in the number of the item that you want into the 'Qty' boxes." , type: "warning",   confirmButtonText: "Grab some items!" });
+			return false;
+			
+		}
+	}
+	  
+	animating = true;
+	
+	current_fs = $(this).parent();
+	next_fs = $(this).parent().next();
+	
+	//activate next step on progressbar using the index of next_fs
+	$("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+	
+	//show the next fieldset
+	next_fs.show(); 
+	//hide the current fieldset with style
+	current_fs.animate({opacity: 0}, {
+		step: function(now, mx) {
+			//as the opacity of current_fs reduces to 0 - stored in "now"
+			//1. scale current_fs down to 80%
+			scale = 1 - (1 - now) * 0.2;
+			//2. bring next_fs from the right(50%)
+			left = (now * 50)+"%";
+			//3. increase opacity of next_fs to 1 as it moves in
+			opacity = 1 - now;
+			current_fs.css({'transform': 'scale('+scale+')'});
+			next_fs.css({'left': left, 'opacity': opacity});
+		}, 
+		duration: 800, 
+		complete: function(){
+			current_fs.hide();
+			animating = false;
+		}, 
+		//this comes from the custom easing plugin
+		easing: 'easeInOutBack'
+	});
+});
+
+$(".previous").click(function(){
+	if(animating) return false;
+	animating = true;
+	
+	current_fs = $(this).parent();
+	previous_fs = $(this).parent().prev();
+	
+	//de-activate current step on progressbar
+	$("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
+	
+	//show the previous fieldset
+	previous_fs.show(); 
+	//hide the current fieldset with style
+	current_fs.animate({opacity: 0}, {
+		step: function(now, mx) {
+			//as the opacity of current_fs reduces to 0 - stored in "now"
+			//1. scale previous_fs from 80% to 100%
+			scale = 0.8 + (1 - now) * 0.2;
+			//2. take current_fs to the right(50%) - from 0%
+			left = ((1-now) * 50)+"%";
+			//3. increase opacity of previous_fs to 1 as it moves in
+			opacity = 1 - now;
+			current_fs.css({'left': left});
+			previous_fs.css({'transform': 'scale('+scale+')', 'opacity': opacity});
+		}, 
+		duration: 800, 
+		complete: function(){
+			current_fs.hide();
+			animating = false;
+		}, 
+		//this comes from the custom easing plugin
+		easing: 'easeInOutBack'
+	});
+});
+
+$("#paypalbutton").click(function() {
+		var params = {
+			amount: getAbsoluteCost(), //(parseFloat(getTotalCost()) + 5.00).toFixed(2),
+			description: Date.now(),
+			summary: JSON.stringify(getSummary())
+		};
+		$.post("paypal", params, function(response) {
+				$.cookie("summary-data", JSON.stringify(getSummary()));
+			  window.location.replace(response);
+			});
+		});
+
+$("#referralbutton").click(function() {
+		var params = {
+			referralcode: $("#referralcodebox").val()
+		};
+		$.post("validatereferral", params, function(response) {
+			if (response === "Approved") {
+			    referralApproval = true;
+					referralCode = $("#referralcodebox").val();
+					$('.actualtotal').text('$' + getAbsoluteCost()); //(parseFloat(getTotalCost()) + 5.00).toFixed(2));
+			}
+			else {
+				swal({   title: "Error!",   text: "Invalid referral code.",   type: "error",   confirmButtonText: "Retry" });
+			}
+
+		});
+});
+
+$(".suggestion-button").click(function() {
+		console.log("clicked!");
+		var item = $("#suggestion_item").val();
+		var price = $("#suggestion_price").val();
+		var email = $("#suggestion_email").val();
+		if (!item) {
+				swal({   title: "Error!",   text: "Item field is empty. Type in an item that you'd be willing to purchase.",   type: "error",   confirmButtonText: "Retry" });
+				return;
+		}
+		if (!price) {
+				swal({   title: "Error!",   text: "Price field is empty. Type in the price you'd be willing to pay.",   type: "error",   confirmButtonText: "Retry" });
+				return;
+		}
+		if (!email) {
+				swal({   title: "Error!",   text: "Email field is empty. Type in your email so we can get back to you.",   type: "error",   confirmButtonText: "Retry" });
+				return;
+		}
+		var params = 
+		{
+			item: item,
+			price: price,
+			email: email
+		};
+		$.post("suggestion", params, function(response) {
+			$("#suggestion_msg").fadeIn().delay(1000).fadeOut();
+			$("#suggestion_email").val("");
+			$("#suggestion_price").val("");
+			$("#suggestion_item").val("");
+			$("#needsmth").text("Anything else?");
+		});
+});
+		
+			
+
+$("#checkoutbutton").click(function(){
+	var expiry = $('.cc-exp').payment('cardExpiryVal');
+	//var validateExpiry = $.payment.validateCardExpiry(expiry["month"], expiry["year"]);
+	var params = 
+		{
+			first_name: $('#firstname').val(),
+			last_name: $('#lastname').val(),
+			number: $('#cc-num').val(),
+			type: $.payment.cardType($('input.cc-num').val()),
+			description: Date.now(),
+			expire_month: expiry["month"],
+			expire_year: expiry["year"],
+			amount: getAbsoluteCost(), //(parseFloat(getTotalCost()) + 5.00).toFixed(2),
+			summary: JSON.stringify(getSummary())
+		};
+
+	$.post("create", params, function(response) {
+			var state = response['state'];
+			console.log(response);
+			if (state === 'approved') {
+			  $('fieldset').empty();
+				$('fieldset').append($('<div><h1>Success!</h1><h2> Your order is on its way! </h2> <br> Keep the following confirmation number in your records: <br>' + response['id'] + ' <br> <br> Contact us at the.crumbs.org@gmail.com </div>'));
+			}
+			else {
+				swal({   title: "Error!",   text: "The order cannot be completed. Make sure the payment information is valid.",   type: "error",   confirmButtonText: "Retry" });
+			}
+		});
+	});
+
+	$(".confbutton").click(function() {
+			var summary = getSummary();
+			$("#conf_dormname").text(summary['dormname']);
+			$("#conf_dormnumber").text(summary['dormnumber']);
+			var now = new Date();
+			if (now.getHours() >= 17) {
+				$("#conf_deliverytime").text("Tomorrow 8:00pm");
+			}
+			else {
+				$("#conf_deliverytime").text("Today 8:00pm");
+			}
+			  
+			$("#costtable").empty();
+			for (var i = 0; i < summary['items'].length - 1; i++) {
+				$("#costtable").append($("<tr><td>" + summary['items'][i] + " x " + summary['quantities'][i] + "</td><td>$" + summary['itemcost'][i] + "</td></tr>"));
+			}
+
+	});
+});
+
+
+	</script>
+	
+<!-- multistep form -->
+<form id="msform">
+
+
+	<!-- progressbar -->
+	<ul id="progressbar">
+		<li class="active">Start</li>
+		<li>Items</li>
+		<li>Notes</li>
+		<li>Location</li>
+		<li>Confirmation</li>
+		<li>Checkout</li>
+	</ul>
+	<!-- fieldsets -->
+	<fieldset>
+		<div class="header">
+			<span id="logo">The Nibbles</span>
+			<br>
+			<div>
+				<img src="mcdonalds.png" style="height:75px;width:75px">
+				<img src="panera.jpg" style="height:75px;width:75px">
+				<img src="fiveguys.jpg" style="height:75px;width:75px">
+				<img src="kfc.svg" style="height:75px;width:75px">
+				<img src="tacobell.jpg" style="height:75px;width:75px">
+			</div>
+			<br>
+			Order before 5:30pm, for guaranteed delivery by 8pm.
+		</div>
+		<br>
+			<div style="background-color:#FFF4D4">
+			<span> ★★★★☆ Average Review: 4.3 stars </span><br>
+			<span id="reviewspan" class="fs-subtitle"></span>
+			</div>
+		<br>
+		<div id="slideshowdiv" style="display:none;margin-top:10px;margin-bottom:10px">
+				<img style="height:150px;width:150px" src="" id="slideshow"/>
+		</div>
+		<div id="advertisingdiv" style="background-color:#FFA6AB;margin-bottom:10px">
+			<div id="advertisingclose" style="height:15px;font-size:10px;text-align:right;padding-right:3px">-Close-</div>
+			<div style="width:20%;float:left"> 
+				<img style="text-align:left" height="150px" width="50px" src="lrg.png">
+			</div>
+			<div id="advertisingtext" style="width:80%;float:left"> 
+				<p>
+				Brought to you by <a href="http://longriverstudios.net">Long River Gallery & Gifts.</a>
+				</p>
+				<div style="text-align:left">
+					<br>
+					<p class="fs-subtitle"> Long River Gallery & Gifts is an art studio and cooperative in Lyme, offering space for <i>the</i> most talented local artists and crafters. <a href="http://theuppervalley.com/arts/long-river-of-lyme-a-local-commitment/">Why should I be interested in local artwork?</a>
+					</p>
+					<p class="fs-subtitle">Long River is committed to fighting poverty, and its owners, Dave ('79A) and Lisa Celone and artists have been supporting the Haven for many years.
+					</p>
+					<p class="fs-subtitle">Hours are 10AM - 6PM, Tue - Sun. Please visit! </p>
+					<div style="height:10px"></div>
+				</div>
+			</div>
+		</div>
+
+		<a href="mission">We are donating all proceeds to the Upper Valley Haven</a>
+		<br>
+
+		<input type="button" name="next" class="next action-button startpage" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">What are you looking for?</h2>
+		<h3 class="fs-subtitle">Running total: <span class="runningtotal">$0.00</span></h3>
+		<!-- Actual items start here -->
+<div id="listContainer" style="max-height:200px;overflow-y:auto">
+<ul id="expList">
+<li> Five Guys Burgers
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Burgers/fiveguysburgers3.jpg" class="shoppingitemname"> Bacon burger</span> <span class="shoppingprice">$11.04</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Burgers/fiveguysburgers4.jpg" class="shoppingitemname"> Bacon cheeseburger</span> <span class="shoppingprice">$12.12</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Burgers/fiveguysburgers2.jpg" class="shoppingitemname"> Cheeseburger</span> <span class="shoppingprice">$10.58</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Burgers/fiveguysburgers1.jpg" class="shoppingitemname"> Hamburger</span> <span class="shoppingprice">$9.50</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Burgers/fiveguysburgers7.jpg" class="shoppingitemname"> Little bacon burger</span> <span class="shoppingprice">$8.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Burgers/fiveguysburgers8.jpg" class="shoppingitemname"> Little bacon cheeseburger</span> <span class="shoppingprice">$9.36</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Burgers/fiveguysburgers6.jpg" class="shoppingitemname"> Little cheeseburger</span> <span class="shoppingprice">$7.82</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Burgers/fiveguysburgers5.jpg" class="shoppingitemname"> Little hamburger</span> <span class="shoppingprice">$6.74</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Five Guys Fries
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Fries/fiveguysfries6.jpg" class="shoppingitemname"> Cajun style (large)</span> <span class="shoppingprice">$7.67</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Fries/fiveguysfries5.jpg" class="shoppingitemname"> Cajun style (regular)</span> <span class="shoppingprice">$5.82</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Fries/fiveguysfries4.jpg" class="shoppingitemname"> Cajun style (small)</span> <span class="shoppingprice">$4.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Fries/fiveguysfries3.jpg" class="shoppingitemname"> Five guys style fries (large)</span> <span class="shoppingprice">$7.67</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Fries/fiveguysfries2.jpg" class="shoppingitemname"> Five guys style fries (regular)</span> <span class="shoppingprice">$5.82</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Fries/fiveguysfries1.jpg" class="shoppingitemname"> Five guys style fries (small)</span> <span class="shoppingprice">$4.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Five Guys Hot Dogs
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Hot%20Dogs/fiveguyshotdogs4.jpg" class="shoppingitemname"> Bacon cheese dog</span> <span class="shoppingprice">$8.89</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Hot%20Dogs/fiveguyshotdogs3.jpg" class="shoppingitemname"> Bacon dog</span> <span class="shoppingprice">$7.82</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Hot%20Dogs/fiveguyshotdogs2.jpg" class="shoppingitemname"> Cheese dog</span> <span class="shoppingprice">$7.36</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Hot%20Dogs/fiveguyshotdogs1.jpg" class="shoppingitemname"> Kosher style hot dog</span> <span class="shoppingprice">$6.29</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Five Guys Sandwiches
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Sandwiches/fiveguyssandwiches4.jpg" class="shoppingitemname"> Blt</span> <span class="shoppingprice">$7.67</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Sandwiches/fiveguyssandwiches2.jpg" class="shoppingitemname"> Cheese veggie</span> <span class="shoppingprice">$6.13</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Sandwiches/fiveguyssandwiches3.jpg" class="shoppingitemname"> Grilled cheese</span> <span class="shoppingprice">$6.13</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Five%20Guys%20Sandwiches/fiveguyssandwiches1.jpg" class="shoppingitemname"> Veggie</span> <span class="shoppingprice">$5.05</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> KFC Meals
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/KFC%20Meals/kfcmeals2.jpg" class="shoppingitemname"> 3pcs tender, mashed potatoes and gravy, biscuit, drink, choc chip cookie</span> <span class="shoppingprice">$6.60</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/KFC%20Meals/kfcmeals4.jpg" class="shoppingitemname"> Breast piece, mashed potatoes and gravy, biscuit, drink, choc chip cookie</span> <span class="shoppingprice">$6.60</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/KFC%20Meals/kfcmeals6.jpg" class="shoppingitemname"> Drum and thigh, mashed potatoes and gravy, biscuit, drink, choc chip cookie</span> <span class="shoppingprice">$6.60</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/KFC%20Meals/kfcmeals3.jpg" class="shoppingitemname"> Famous bowl, drink, choc chip cookie</span> <span class="shoppingprice">$6.60</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/KFC%20Meals/kfcmeals1.jpg" class="shoppingitemname"> Popcorn nuggets, mashed potatoes and gravy, biscuit, drink, chocolate chip cookie</span> <span class="shoppingprice">$6.60</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/KFC%20Meals/kfcmeals5.jpg" class="shoppingitemname"> Pot pie, medium drink, choc chip cookie</span> <span class="shoppingprice">$6.60</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> McDonalds Drinks
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Drinks/mcdonaldsdrinks3.jpg" class="shoppingitemname"> Drink (large)</span> <span class="shoppingprice">$2.29</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Drinks/mcdonaldsdrinks2.jpg" class="shoppingitemname"> Drink (medium)</span> <span class="shoppingprice">$1.98</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Drinks/mcdonaldsdrinks1.jpg" class="shoppingitemname"> Drink (small)</span> <span class="shoppingprice">$1.54</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Drinks/mcdonaldsdrinks6.jpg" class="shoppingitemname"> Shake (large)</span> <span class="shoppingprice">$4.60</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Drinks/mcdonaldsdrinks5.jpg" class="shoppingitemname"> Shake (medium)</span> <span class="shoppingprice">$3.98</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Drinks/mcdonaldsdrinks4.jpg" class="shoppingitemname"> Shake (small)</span> <span class="shoppingprice">$3.36</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Drinks/mcdonaldsdrinks9.jpg" class="shoppingitemname"> Smoothie (large)</span> <span class="shoppingprice">$5.21</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Drinks/mcdonaldsdrinks8.jpg" class="shoppingitemname"> Smoothie (medium)</span> <span class="shoppingprice">$4.44</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Drinks/mcdonaldsdrinks7.jpg" class="shoppingitemname"> Smoothie (small)</span> <span class="shoppingprice">$3.67</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> McDonalds Fries
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Fries/mcdonaldsfries3.jpg" class="shoppingitemname"> Fries (large)</span> <span class="shoppingprice">$2.75</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Fries/mcdonaldsfries2.jpg" class="shoppingitemname"> Fries (med)</span> <span class="shoppingprice">$2.45</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Fries/mcdonaldsfries1.jpg" class="shoppingitemname"> Fries (small)</span> <span class="shoppingprice">$1.98</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Fries/mcdonaldsfries4.jpg" class="shoppingitemname"> Nuggets 10pc</span> <span class="shoppingprice">$7.68</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Fries/mcdonaldsfries5.jpg" class="shoppingitemname"> Nuggets 20pc</span> <span class="shoppingprice">$7.68</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Fries/mcdonaldsfries6.jpg" class="shoppingitemname"> Nuggets 40pc</span> <span class="shoppingprice">$13.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> McDonalds Sandwiches
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches15.jpg" class="shoppingitemname"> Artisan grilled chicken</span> <span class="shoppingprice">$6.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches10.jpg" class="shoppingitemname"> Bbq ranch burger</span> <span class="shoppingprice">$1.54</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches6.jpg" class="shoppingitemname"> Bacon clubhouse burger</span> <span class="shoppingprice">$6.90</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches14.jpg" class="shoppingitemname"> Bacon mcdouble</span> <span class="shoppingprice">$3.07</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches4.jpg" class="shoppingitemname"> Bacon and cheese sirloin burger</span> <span class="shoppingprice">$8.14</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches1.jpg" class="shoppingitemname"> Big mac</span> <span class="shoppingprice">$6.13</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches9.jpg" class="shoppingitemname"> Cheeseburger</span> <span class="shoppingprice">$1.54</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches11.jpg" class="shoppingitemname"> Double cheeseburger</span> <span class="shoppingprice">$2.45</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches7.jpg" class="shoppingitemname"> Double quarter pounder with cheese</span> <span class="shoppingprice">$7.36</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches20.jpg" class="shoppingitemname"> Filet-o-fish</span> <span class="shoppingprice">$5.82</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches8.jpg" class="shoppingitemname"> Hamburger</span> <span class="shoppingprice">$1.54</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches5.jpg" class="shoppingitemname"> Lettuce and tomato sirloin burger</span> <span class="shoppingprice">$7.68</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches19.jpg" class="shoppingitemname"> Mcchicken</span> <span class="shoppingprice">$1.54</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches12.jpg" class="shoppingitemname"> Mcdouble</span> <span class="shoppingprice">$2.14</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches21.jpg" class="shoppingitemname"> Mcrib</span> <span class="shoppingprice">$6.90</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches17.jpg" class="shoppingitemname"> Premium crispy chicken bacon clubhouse</span> <span class="shoppingprice">$6.90</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches16.jpg" class="shoppingitemname"> Premium crispy chicken deluxe</span> <span class="shoppingprice">$6.90</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches18.jpg" class="shoppingitemname"> Premium grilled chicken bacon clubhouse</span> <span class="shoppingprice">$6.90</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches2.jpg" class="shoppingitemname"> Quarter pounder with cheese</span> <span class="shoppingprice">$5.82</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Sandwiches/mcdonaldssandwiches3.jpg" class="shoppingitemname"> Sirloin burger</span> <span class="shoppingprice">$7.84</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> McDonalds Wraps
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Wraps/mcdonaldswraps1.jpg" class="shoppingitemname"> Crispy chicken and bacon</span> <span class="shoppingprice">$6.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Wraps/mcdonaldswraps3.jpg" class="shoppingitemname"> Crispy chicken and ranch</span> <span class="shoppingprice">$6.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Wraps/mcdonaldswraps5.jpg" class="shoppingitemname"> Crispy sweet chili chicken</span> <span class="shoppingprice">$6.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Wraps/mcdonaldswraps2.jpg" class="shoppingitemname"> Grilled chicken and bacon</span> <span class="shoppingprice">$6.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Wraps/mcdonaldswraps4.jpg" class="shoppingitemname"> Grilled chicken and ranch</span> <span class="shoppingprice">$6.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Wraps/mcdonaldswraps6.jpg" class="shoppingitemname"> Grilled sweet chili chicken</span> <span class="shoppingprice">$6.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Wraps/mcdonaldswraps7.jpg" class="shoppingitemname"> Ranch snack wrap crispy</span> <span class="shoppingprice">$2.59</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/McDonalds%20Wraps/mcdonaldswraps8.jpg" class="shoppingitemname"> Ranch snack wrap grilled</span> <span class="shoppingprice">$2.59</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Panera Salads
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads6.jpg" class="shoppingitemname"> Asian sesame chicken salad</span> <span class="shoppingprice">$11.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads8.jpg" class="shoppingitemname"> Bbq chicken salad</span> <span class="shoppingprice">$12.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads11.jpg" class="shoppingitemname"> Caesar salad</span> <span class="shoppingprice">$9.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads10.jpg" class="shoppingitemname"> Chicken caesar salad</span> <span class="shoppingprice">$11.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads14.jpg" class="shoppingitemname"> Chicken cobb</span> <span class="shoppingprice">$12.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads15.jpg" class="shoppingitemname"> Chicken cobb with avocado</span> <span class="shoppingprice">$13.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads4.jpg" class="shoppingitemname"> Classic salad</span> <span class="shoppingprice">$9.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads5.jpg" class="shoppingitemname"> Classic with chicken salad</span> <span class="shoppingprice">$11.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads7.jpg" class="shoppingitemname"> Fuji apple chicken salad</span> <span class="shoppingprice">$12.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads12.jpg" class="shoppingitemname"> Greek salad</span> <span class="shoppingprice">$9.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads13.jpg" class="shoppingitemname"> Greek with chicken salad</span> <span class="shoppingprice">$11.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads2.jpg" class="shoppingitemname"> Mediterranean chicken & quinoa salad</span> <span class="shoppingprice">$13.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads3.jpg" class="shoppingitemname"> Power kale caesar salad with chicken</span> <span class="shoppingprice">$13.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads1.jpg" class="shoppingitemname"> Strawberry poppyseed & chicken salad</span> <span class="shoppingprice">$13.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Salads/panerasalads9.jpg" class="shoppingitemname"> Thai chicken salad</span> <span class="shoppingprice">$13.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Panera Sandwiches
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches6.jpg" class="shoppingitemname"> Asiago steak sandwich</span> <span class="shoppingprice">$12.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches8.jpg" class="shoppingitemname"> Bacon turkey bravo sandwich</span> <span class="shoppingprice">$11.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches1.jpg" class="shoppingitemname"> Chipotle chicken panini</span> <span class="shoppingprice">$11.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches11.jpg" class="shoppingitemname"> Classic grilled cheese</span> <span class="shoppingprice">$9.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches2.jpg" class="shoppingitemname"> Frontega chicken panini</span> <span class="shoppingprice">$11.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches10.jpg" class="shoppingitemname"> Mediterranean veggie sandwich</span> <span class="shoppingprice">$9.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches12.jpg" class="shoppingitemname"> Napa almond chicken salad sandwich</span> <span class="shoppingprice">$11.04</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches5.jpg" class="shoppingitemname"> Roasted turkey and avocado blt</span> <span class="shoppingprice">$13.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches13.jpg" class="shoppingitemname"> Sierra turkey sandwich</span> <span class="shoppingprice">$11.04</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches7.jpg" class="shoppingitemname"> Smoked ham and swiss sandwich</span> <span class="shoppingprice">$9.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches14.jpg" class="shoppingitemname"> Smoked turkey sandwich</span> <span class="shoppingprice">$9.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches3.jpg" class="shoppingitemname"> Smokehouse turkey panini</span> <span class="shoppingprice">$11.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches4.jpg" class="shoppingitemname"> Steak and white cheddar panini</span> <span class="shoppingprice">$13.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Panera%20Sandwiches/panerasandwiches9.jpg" class="shoppingitemname"> Tuna salad sandwich</span> <span class="shoppingprice">$9.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li style="color:green">Taco Bell Burritos
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos8.jpg" class="shoppingitemname"> 7-layer burrito</span> <span class="shoppingprice">$3.51</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos1.jpg" class="shoppingitemname"> Bean burrito</span> <span class="shoppingprice">$1.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos2.jpg" class="shoppingitemname"> Beefy 5-layer burrito</span> <span class="shoppingprice">$2.24</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos9.jpg" class="shoppingitemname"> Black bean burrito</span> <span class="shoppingprice">$2.52</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos7.jpg" class="shoppingitemname"> Burrito supreme</span> <span class="shoppingprice">$4.21</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos5.jpg" class="shoppingitemname"> Cheese potato burrito</span> <span class="shoppingprice">$3.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos3.jpg" class="shoppingitemname"> Chicken burrito</span> <span class="shoppingprice">$2.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos4.jpg" class="shoppingitemname"> Chili cheese burrito</span> <span class="shoppingprice">$2.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos6.jpg" class="shoppingitemname"> Combo burrito</span> <span class="shoppingprice">$3.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos10.jpg" class="shoppingitemname"> Xxl grilled stuft burrito (beef)</span> <span class="shoppingprice">$5.62</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos11.jpg" class="shoppingitemname"> Xxl grilled stuft burrito (chicken)</span> <span class="shoppingprice">$7.03</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Burritos/tacobellburritos12.jpg" class="shoppingitemname"> Xxl grilled stuft burrito (steak)</span> <span class="shoppingprice">$7.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li style="color:green">Taco Bell Chalupas
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Chalupas/tacobellchalupas2.jpg" class="shoppingitemname"> Chalupa supreme (beef)</span> <span class="shoppingprice">$3.51</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Chalupas/tacobellchalupas1.jpg" class="shoppingitemname"> Chalupa supreme (chicken)</span> <span class="shoppingprice">$4.21</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Chalupas/tacobellchalupas3.jpg" class="shoppingitemname"> Chalupa supreme (steak)</span> <span class="shoppingprice">$4.49</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li style="color:green">Taco Bell Specialties
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Specialties/tacobellspecialties2.jpg" class="shoppingitemname"> Crunchwrap supreme</span> <span class="shoppingprice">$4.21</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Specialties/tacobellspecialties1.jpg" class="shoppingitemname"> Mexican pizza</span> <span class="shoppingprice">$4.92</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Specialties/tacobellspecialties5.jpg" class="shoppingitemname"> Meximelt</span> <span class="shoppingprice">$3.08</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Specialties/tacobellspecialties8.jpg" class="shoppingitemname"> Quesadilla (beef)</span> <span class="shoppingprice">$4.62</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Specialties/tacobellspecialties3.jpg" class="shoppingitemname"> Quesadilla (chicken)</span> <span class="shoppingprice">$4.77</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Specialties/tacobellspecialties4.jpg" class="shoppingitemname"> Quesadilla (steak)</span> <span class="shoppingprice">$4.92</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Specialties/tacobellspecialties7.jpg" class="shoppingitemname"> Quesarito (beef)</span> <span class="shoppingprice">$3.51</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Specialties/tacobellspecialties6.jpg" class="shoppingitemname"> Spicy tostada</span> <span class="shoppingprice">$1.81</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li style="color:green">Taco Bell Tacos
+<ul>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos9.jpg" class="shoppingitemname"> Chicken soft taco</span> <span class="shoppingprice">$2.52</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos5.jpg" class="shoppingitemname"> Crispy potato soft taco</span> <span class="shoppingprice">$1.40</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos1.jpg" class="shoppingitemname"> Crunchy taco</span> <span class="shoppingprice">$1.67</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos2.jpg" class="shoppingitemname"> Crunchy taco supreme</span> <span class="shoppingprice">$2.24</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos12.jpg" class="shoppingitemname"> Doritos locos taco (cool ranch)	regular</span> <span class="shoppingprice">$2.10</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos13.jpg" class="shoppingitemname"> Doritos locos taco (cool ranch)	supreme</span> <span class="shoppingprice">$2.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos14.jpg" class="shoppingitemname"> Doritos locos taco (fiery)	regular</span> <span class="shoppingprice">$2.10</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos15.jpg" class="shoppingitemname"> Doritos locos taco (fiery)	supreme</span> <span class="shoppingprice">$2.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos10.jpg" class="shoppingitemname"> Doritos locos taco (nacho cheese)	regular</span> <span class="shoppingprice">$2.10</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos11.jpg" class="shoppingitemname"> Doritos locos taco (nacho cheese)	supreme</span> <span class="shoppingprice">$2.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos7.jpg" class="shoppingitemname"> Double decker taco</span> <span class="shoppingprice">$2.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos8.jpg" class="shoppingitemname"> Double decker taco supreme</span> <span class="shoppingprice">$3.22</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos6.jpg" class="shoppingitemname"> Grilled steak soft taco</span> <span class="shoppingprice">$3.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos3.jpg" class="shoppingitemname"> Soft taco</span> <span class="shoppingprice">$1.67</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="ff_example/Taco%20Bell%20Tacos/tacobelltacos4.jpg" class="shoppingitemname"> Soft taco supreme</span> <span class="shoppingprice">$2.24</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+</ul>
+</div>
+		<!-- End shopping items -->
+		<input type="button" name="previous" class="previous action-button afterstartpage" value="Previous" />
+		<input type="button" name="next" class="next action-button itemspage" value="Next" />
+		
+		
+		<div id="item_preview" style="display:none;z-index:100"><img id="preview_img"/></div>
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Let's be a little more specific.</h2>
+		<h3 class="fs-subtitle">Write your drink(s) of choice, and/or toppings on those burgers/sandwiches/hotdogs.</h3>
+		<p class="fs-subtitle"><b>Five Guys Toppings:</b> Mayo, Lettuce, Pickles, Tomatoes, Grilled Onions, Grilled Mushrooms, Ketchup, Mustard, Relish, Onions, Jalapenos, Peppers, A1 Sauce, BBQ Sauce, Hot Sauce</p>
+		<p class="fs-subtitle"><b>Drinks:</b> Coke/Pepsi, Diet Coke/Pepsi, Dr. Pepper, Diet Dr. Pepper, Sprite, Hi-C, Blue Powerade, Iced Tea, Sweet Tea</p>
+		<p class="fs-subtitle"><b>McDonalds Smoothies:</b> Blueberry Pomegranate, Strawberry Banana, Mango Pineapple</p>
+		<p class="fs-subtitle"><b>McDonalds Shakes:</b> Vanilla, Chocolate, Strawberry</p>
+		<textarea id="notes" rows="4" cols="50"> </textarea>
+		<input type="button" name="previous" class="previous action-button" value="Previous" />
+		<input type="button" name="next" class="next action-button confbutton" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Where are you?</h2>
+		<h3 class="fs-subtitle">We need to make sure we're delivering to the right place.</h3>
+		<input type="text" id="dormname" name="dormname" placeholder="Dorm Name (e.g. Fahey)" />
+		<input type="text" id="dormnumber" name="dormnumber" placeholder="Dorm Number (e.g. 123)" />
+		<input type="button" name="previous" class="previous action-button" value="Previous" />
+		<input type="button" name="next" class="next action-button confbutton locationpage" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Confirmation</h2>
+		<h3 class="fs-subtitle">Please review the information below and make sure it is correct</h3>
+		<div> Delivery to: <span id="conf_dormname"> </span> <span id="conf_dormnumber"> </span> </div>
+		<div> Latest Delivery time: <span id="conf_deliverytime"> </span> </span> </div>
+		<br>
+		<table id="costtable" border="1" style="width:100%">
+		</table>
+		<br>
+		<div> Subtotal: <span class="runningtotal"> $0.00 </span> </div>
+		<div id="deliveryfeemsg"> + $2.00 delivery fee </div>
+		<div id="bulkmsg" style="display:none"> <span style="color:green"> (+10% discount) </span> </div>
+		<br>
+		<div> Total: <span class="actualtotal"> $0.00 </span> </div>
+		<br>
+		<div> <input placeholder="Have a referral code?" style="width:60%" id="referralcodebox" type="text"/> 
+			<input type="button" id="referralbutton" value="Check" style="width:25%"> </input>
+			</div>
+			
+		<input type="button" name="previous" class="previous action-button" value="Previous" />
+		<input type="button" name="next" class="next action-button" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Checkout</h2>
+		<h3 class="fs-subtitle">You're one click away from items coming to your door.</h3>
+		<!-- PayPal Logo --><table style="width:200px;margin: 10px auto" border="0" cellpadding="10" cellspacing="0" align="center"><tr><td align="center"></td></tr><tr><td align="center"><a id="paypalbutton" href="#"><img src="https://www.paypalobjects.com/webstatic/mktg/logo-center/Security_Banner_234x60_2a.gif" border="0" alt="PayPal Logo"></a></td></tr></table><!-- PayPal Logo -->
+		<h5 style="margin-top:-10px;margin-bottom:-10px"> -or- </h5>
+		<div class="paymentInfo">
+			<p class="paymentInfoTotal">
+				Your card will be charged: <span class="paymentInfoPrice actualtotal">$0.00</span>
+			</p>
+		</div>
+		<!-- Credit Card Div -->
+		<input id="firstname" type="text" placeholder="First Name" style="text-align:left;width:30%">
+		<input id="lastname" type="text" placeholder="Last Name" style="text-align:left;width:30%">
+
+
+		<div class="form-row cardInfo__cc-num">
+			 <label for="cc-num"><abbr title="required">*</abbr><span>Card Number</span></label>
+			 <div class="cc-num__wrap">
+				 <!-- using type="tel" because type="number" doesn’t pass HTML5 form validation with jQuery.payment formatting -->
+				 <input id="cc-num" type="tel" class="paymentInput cc-num" placeholder="•••• •••• •••• ••••" autocompletetype="cc-number" required="required">
+				 <span class="card" aria-hidden="true"></span>
+			 </div>
+	 </div>
+		  
+	 <div class="form-row cardInfo__cc-exp">
+		 <label for="cc-exp"><abbr title="required">*</abbr><span>Expires</span></label>
+		 <input id="cc-exp" type="tel" class="paymentInput cc-exp" placeholder="MM / YY" autocompletetype="cc-exp" required="required">
+	 </div>
+		  
+	 <div class="form-row cardInfo__cc-cvc">
+		 <label for="cc-cvc"><abbr title="required">*</abbr><span>CVC</span></label>
+		 <input id="cc-cvc" type="tel" class="paymentInput cc-cvc" placeholder="CVC" autocompletetype="cc-cvc" required="required">
+	 </div>
+		<!-- Credit Card Div -->
+			<input type="button" name="previous" class="previous action-button confbutton" value="Previous" />
+			<input id="checkoutbutton" type="button"  name="submit" class="submit action-button" value="Checkout!" />
+			<div style="text-size:5px;color:grey">Only click Checkout once to avoid duplicate charges.</div>
+	</fieldset>
+</form>
+
+<div id="footer">Trouble with your order? Need an item that is not listed? Contact us at <a href="mailto:the.crumbs.org@gmail.com" style="color:white">the.crumbs.org@gmail.com</a></div>
+
+	</body>
+</html>

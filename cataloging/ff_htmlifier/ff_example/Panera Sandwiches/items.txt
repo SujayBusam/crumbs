@@ -1,0 +1,14 @@
+panerasandwiches1;Chipotle Chicken Panini;9.84
+panerasandwiches2;Frontega Chicken Panini;9.84
+panerasandwiches3;Smokehouse Turkey Panini;9.84
+panerasandwiches4;Steak and White Cheddar Panini;11.00
+panerasandwiches5;Roasted Turkey and Avocado BLT;11.00
+panerasandwiches6;Asiago Steak Sandwich;10.61
+panerasandwiches7;Smoked Ham and Swiss Sandwich;8.05
+panerasandwiches8;Bacon Turkey Bravo Sandwich;9.84
+panerasandwiches9;Tuna Salad Sandwich;8.05
+panerasandwiches10;Mediterranean Veggie Sandwich;8.05
+panerasandwiches11;Classic Grilled Cheese;8.05
+panerasandwiches12;Napa Almond Chicken Salad Sandwich;9.20
+panerasandwiches13;Sierra Turkey Sandwich;9.20
+panerasandwiches14;Smoked Turkey Sandwich;8.05

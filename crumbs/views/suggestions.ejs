@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+	<head>
+        <title>Crumbs - Orders Page</title>
+				<meta charset="utf-8">
+
+				<!-- jQuery -->
+				<script src="http://thecodeplayer.com/uploads/js/jquery-1.9.1.min.js" type="text/javascript"></script>
+				<!-- jQuery easing plugin -->
+			  <script src="http://thecodeplayer.com/uploads/js/jquery.easing.min.js" type="text/javascript"></script>
+				<!-- JQuery payment -->
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.payment/1.2.3/jquery.payment.min.js" type="text/javascript"></script>
+	</head>
+<body>
+<script>
+    // Write on keyup event of keyword input element
+	$(document).ready(function() {
+		$("#search").keyup(function(){
+        _this = this;
+        // Show only matching TR, hide rest of them
+        $.each($("#table tbody").find("tr"), function() {
+            console.log($(this).text());
+            if($(this).text().toLowerCase().indexOf($(_this).val().toLowerCase()) == -1)
+               $(this).hide();
+            else
+                 $(this).show();                
+        });
+    }); 
+		$(".item").click(function() {
+			window.location.href = items[$(this).text().trim()];
+			});
+	});
+</script>
+<input type="text" class="table-search" id="search" autocomplete="off" placeholder="Search…">
+<table id="table" class="table" border="1" id="tblData">
+        <thead>
+        <tr>
+				<th>Item</th>
+				<th>Price</th>
+        <th>Email</th>
+        </tr>
+        </thead>
+            <tbody id="tblDataBody">
+            <% suggestions.forEach(function(suggestion){ %>
+
+                <tr>
+										<td> <%= suggestion.item %></td>
+										<td> <%= suggestion.price %> </td>
+										<td> <%= suggestion.email %></td>
+                </tr>
+
+            <%  }) %>
+
+            </tbody>
+</table>
+</body>
+
+</html>
+
+

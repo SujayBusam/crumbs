@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+	<head>
+        <title>Nibbles</title>
+				<meta charset="utf-8">
+
+				<!-- jQuery -->
+				<script src="http://thecodeplayer.com/uploads/js/jquery-1.9.1.min.js" type="text/javascript"></script>
+				<!-- jQuery easing plugin -->
+			  <script src="http://thecodeplayer.com/uploads/js/jquery.easing.min.js" type="text/javascript"></script>
+				<!-- JQuery payment -->
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.payment/1.2.3/jquery.payment.min.js" type="text/javascript"></script>
+				<script src="sweetalert/lib/sweet-alert.min.js"></script> 
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js" type="text/javascript"></script>
+				<link rel="stylesheet" type="text/css" href="sweetalert/lib/sweet-alert.css">
+				<link rel="stylesheet" type="text/css" href="nibbles.css">	
+				<link rel="stylesheet" type="text/css" href="payment.css">	
+				<link rel="stylesheet" type="text/css" href="suggestion.css">
+				<script type="text/javascript" src="reviews.json"></script>
+	</head>
+	<body>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-62507743-1', 'auto');
+	ga(‘set’, ‘&uid’, {{USER_ID}}); // Set the user ID using signed-in user_id.
+  ga('send', 'pageview');
+
+</script>	
+	<script>
+referralCode = "";
+referralApproval = false;
+
+totalCost = 0.0;
+totalItems = {};
+
+function timeStamp() {
+// Create a date object with the current time
+  var now = new Date();
+ 
+// Create an array with the current month, day and time
+  var date = [ now.getMonth() + 1, now.getDate(), now.getFullYear() ];
+ 
+// Create an array with the current hour, minute and second
+  var time = [ now.getHours(), now.getMinutes(), now.getSeconds() ];
+ 
+// Determine AM or PM suffix based on the hour
+  var suffix = ( time[0] < 12 ) ? "AM" : "PM";
+ 
+// Convert hour from military time
+  time[0] = ( time[0] < 12 ) ? time[0] : time[0] - 12;
+ 
+// If hour is 0, set it to 12
+  time[0] = time[0] || 12;
+ 
+// If seconds and minutes are less than 10, add a zero
+  for ( var i = 1; i < 3; i++ ) {
+    if ( time[i] < 10 ) {
+      time[i] = "0" + time[i];
+    }
+  }
+ 
+// Return the formatted string
+	if (!referralApproval) {
+  	return date.join("/") + " " + time.join(":") + " " + suffix;
+	}
+	else {
+  	return date.join("/") + " " + time.join(":") + " " + suffix + " " + referralCode;
+	}
+}
+
+function getTotalCost() {
+	runningCost = 0.0;
+	$(".shoppingquantity").each(function(i, obj) {
+		var price = $(obj).siblings('.shoppingprice').text().substring(1);
+		var quantity = $(obj).val();
+		runningCost = runningCost + price * quantity;
+	});
+	return runningCost.toFixed(2);
+}
+
+function getAbsoluteCost() {
+	if (!referralApproval) {
+		var total = parseFloat(getTotalCost());
+		return (total + 0.00).toFixed(2);
+	}
+	else {
+		var total = parseFloat(getTotalCost());
+		$("#bulkmsg").show();
+		return ((total + 0.00)* 0.9).toFixed(2);
+	}
+}
+
+function getSummary() {
+	res = {};
+	res['cost'] = getAbsoluteCost(); //(parseFloat(getTotalCost()) + 5.00).toFixed(2);
+	res['items'] = [];
+	res['quantities'] = [];
+	res['itemcost'] = [];
+	$(".shoppingquantity").each(function(i, obj) {
+			var quantity = $(obj).val();
+			if (quantity > 0) {
+				var restaurant = $(obj).parent().parent().parent().text().split("\n")[0] + " ";
+				res['items'].push(restaurant + $(obj).siblings('.shoppingitemname').text());
+				res['quantities'].push(quantity);
+				res['itemcost'].push((quantity * $(obj).siblings('.shoppingprice').text().substring(1)).toFixed(2));
+			}
+	});
+	res['items'].push("NOTES: " + $("#notes").val());
+	res['quantities'].push(1);
+	res['itemcost'].push(0);
+	res['dormname'] = $("#dormname").val();
+	res['dormnumber'] = $("#dormnumber").val();
+	res['timestamp'] = timeStamp();
+	return res;
+}
+
+function prepareList() {
+  $('#expList').find('li:has(ul)')
+  	.click( function(event) {
+  		if (this == event.target) {
+  			$(this).toggleClass('expanded');
+  			$(this).children('ul').toggle('medium');
+  		}
+  		return false;
+  	})
+  	.addClass('collapsed')
+  	.children('ul').hide();
+  };
+ 
+
+function validateDetails() {
+		// set variables for the expiry date validation, cvc validation and expiry date 'splitter'
+		var expiry = $('.cc-exp').payment('cardExpiryVal');
+		var validateExpiry = $.payment.validateCardExpiry(expiry["month"], expiry["year"]);
+		var validateCVC = $.payment.validateCardCVC($('.cc-cvc').val());
+		// if statement on whether the card’s expiry is valid or not
+
+		var cardType = $.payment.cardType($('input.cc-num').val());
+		console.log(cardType);
+		if (cardType === "amex") {
+			$('.card').css('background', "url('cards/amex.png')");
+			$('.card').show();
+		}
+		else if (cardType === "visa") {
+			$('.card').css('background', "url('cards/visa.png')");
+			$('.card').show();
+		}
+		else if (cardType === "mastercard") {
+			$('.card').css('background', "url('cards/mastercard.png')");
+			$('.card').show();
+		}
+		else if (cardType === "discover") {
+			$('.card').css('background', "url('cards/discover.png')");
+			$('.card').show();
+		}
+		else {
+			$('.card').hide();
+		}
+
+}
+
+
+$(window).on('resize', function() {
+	$("#advertisingdiv").css("height", $("#advertisingtext").height());
+	});
+
+
+$(document).ready(function() {
+		setTimeout( function() {
+			$("#advertisingdiv").css("height", $("#advertisingtext").height());
+			}, 2000);
+$("#advertisingdiv").css("height", $("#advertisingtext").height());
+
+$("#advertisingclose").click(function() {
+	$("#slideshowdiv").show();
+	$("#advertisingdiv").hide();
+	});
+
+totalitems = $.find('.shoppingitemname').length;
+
+function changeSlideshow() {
+	var n = Math.floor(Math.random() * totalitems);
+	console.log($(".shoppingitemname").eq(n).data("imgpath"));
+	$("#slideshow").attr("src", $(".shoppingitemname").eq(n).data("imgpath"));
+}
+function changeReview() {
+	var n = Math.floor(Math.random() * reviews.length);
+	$("#reviewspan").text('"' + reviews[n] + '"');
+	}
+
+changeSlideshow();
+timer = setInterval(changeSlideshow, 2500);
+changeReview();
+reviewtimer = setInterval(changeReview, 5000);
+		
+//jQuery time
+var current_fs, next_fs, previous_fs; //fieldsets
+var left, opacity, scale; //fieldset properties which we will animate
+var animating; //flag to prevent quick multi-click glitches
+
+prepareList();
+
+$('.startpage').click(function() {
+	clearInterval(timer);
+	clearInterval(reviewtimer);
+});
+
+$('.afterstartpage').click(function() {
+	timer = setInterval(changeSlideshow, 2500);
+	reviewtimer = setInterval(changeReview, 5000);
+});
+
+$('.alert-close').on('click', function(c){
+		$(this).parent().fadeOut('slow', function(c){
+		});
+});	
+
+
+$('input.cc-num').payment('formatCardNumber');
+$('input.cc-exp').payment('formatCardExpiry');
+$('input.cc-cvc').payment('formatCardCVC');
+$('.shoppingquantity').payment('restrictNumeric');
+
+$("#collapseall").click(function() {
+	$("#expList").find('li:has(ul)').removeClass('expanded').children('ul').hide();
+	});
+ 
+// this runs the above function every time stuff is entered into the card inputs
+$('.paymentInput').bind('change paste keyup', function() {
+validateDetails();
+}); 
+
+$('.shoppingquantity').bind('change paste keyup', function() {
+	$('.runningtotal').text('$' + getTotalCost());
+	$('.actualtotal').text('$' + getAbsoluteCost()); //(parseFloat(getTotalCost()) + 5.00).toFixed(2));
+});
+
+$(".shoppingquantity").hover(function(e){
+	$("#preview_img").attr('src', $(this).siblings(".shoppingitemname").data("imgpath"));
+	$("#preview_img").css('height', "150px");
+	$("#preview_img").css('width', "150px");
+	$("#item_preview").show();
+	$("#suggestion_box").hide();
+}, function() {$("#item_preview").hide(); $("#suggestion_box").show();});
+	
+
+$(".shoppingitemname").hover(function(e){
+	$("#preview_img").attr('src', $(this).data("imgpath"));
+	$("#preview_img").css('height', "150px");
+	$("#preview_img").css('width', "150px");
+	$("#item_preview").show();
+	$("#suggestion_box").hide();
+}, function() {$("#item_preview").hide(); $("#suggestion_box").show();});
+
+$(".shoppingitemname").click(function(e) {
+		var oldval = $(this).siblings(".shoppingquantity").val();
+		if (!oldval) {
+		  $(this).siblings(".shoppingquantity").val(1);
+		}
+		else {
+		  $(this).siblings(".shoppingquantity").val(parseInt(oldval) + 1);
+		}
+	$('.runningtotal').text('$' + getTotalCost());
+	$('.actualtotal').text('$' + getAbsoluteCost()); //(parseFloat(getTotalCost()) + 5.00).toFixed(2));
+});
+	
+
+$(".next").click(function(){
+	if(animating) return false;
+	if($(this).hasClass('locationpage')) {
+		if ($("#dormname").val().length === 0) {
+			swal({   title: "Please enter your dorm name.",   type: "info",   confirmButtonText: "Okay!" });
+			return false;
+		}
+		if ($("#dormnumber").val().length === 0) {
+			swal({   title: "Please enter your dorm number.",   type: "info",   confirmButtonText: "Okay!" });
+			return false;
+		}
+	}
+	if($(this).hasClass('itemspage')) {
+	  if (getTotalCost() === "0.00") {
+			swal({   title: "You didn't order anything!", text: "To order something, type in the number of the item that you want into the 'Qty' boxes." , type: "warning",   confirmButtonText: "Grab some items!" });
+			return false;
+			
+		}
+	}
+	  
+	animating = true;
+	
+	current_fs = $(this).parent();
+	next_fs = $(this).parent().next();
+	
+	//activate next step on progressbar using the index of next_fs
+	$("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+	
+	//show the next fieldset
+	next_fs.show(); 
+	//hide the current fieldset with style
+	current_fs.animate({opacity: 0}, {
+		step: function(now, mx) {
+			//as the opacity of current_fs reduces to 0 - stored in "now"
+			//1. scale current_fs down to 80%
+			scale = 1 - (1 - now) * 0.2;
+			//2. bring next_fs from the right(50%)
+			left = (now * 50)+"%";
+			//3. increase opacity of next_fs to 1 as it moves in
+			opacity = 1 - now;
+			current_fs.css({'transform': 'scale('+scale+')'});
+			next_fs.css({'left': left, 'opacity': opacity});
+		}, 
+		duration: 800, 
+		complete: function(){
+			current_fs.hide();
+			animating = false;
+		}, 
+		//this comes from the custom easing plugin
+		easing: 'easeInOutBack'
+	});
+});
+
+$(".previous").click(function(){
+	if(animating) return false;
+	animating = true;
+	
+	current_fs = $(this).parent();
+	previous_fs = $(this).parent().prev();
+	
+	//de-activate current step on progressbar
+	$("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
+	
+	//show the previous fieldset
+	previous_fs.show(); 
+	//hide the current fieldset with style
+	current_fs.animate({opacity: 0}, {
+		step: function(now, mx) {
+			//as the opacity of current_fs reduces to 0 - stored in "now"
+			//1. scale previous_fs from 80% to 100%
+			scale = 0.8 + (1 - now) * 0.2;
+			//2. take current_fs to the right(50%) - from 0%
+			left = ((1-now) * 50)+"%";
+			//3. increase opacity of previous_fs to 1 as it moves in
+			opacity = 1 - now;
+			current_fs.css({'left': left});
+			previous_fs.css({'transform': 'scale('+scale+')', 'opacity': opacity});
+		}, 
+		duration: 800, 
+		complete: function(){
+			current_fs.hide();
+			animating = false;
+		}, 
+		//this comes from the custom easing plugin
+		easing: 'easeInOutBack'
+	});
+});
+
+$("#paypalbutton").click(function() {
+		var params = {
+			amount: getAbsoluteCost(), //(parseFloat(getTotalCost()) + 5.00).toFixed(2),
+			description: Date.now(),
+			summary: JSON.stringify(getSummary())
+		};
+		$.post("paypal", params, function(response) {
+				$.cookie("summary-data", JSON.stringify(getSummary()));
+			  window.location.replace(response);
+			});
+		});
+
+$("#referralbutton").click(function() {
+		var params = {
+			referralcode: $("#referralcodebox").val()
+		};
+		$.post("validatereferral", params, function(response) {
+			if (response === "Approved") {
+			    referralApproval = true;
+					referralCode = $("#referralcodebox").val();
+					$('.actualtotal').text('$' + getAbsoluteCost()); //(parseFloat(getTotalCost()) + 5.00).toFixed(2));
+			}
+			else {
+				swal({   title: "Error!",   text: "Invalid referral code.",   type: "error",   confirmButtonText: "Retry" });
+			}
+
+		});
+});
+
+$(".suggestion-button").click(function() {
+		console.log("clicked!");
+		var item = $("#suggestion_item").val();
+		var price = $("#suggestion_price").val();
+		var email = $("#suggestion_email").val();
+		if (!item) {
+				swal({   title: "Error!",   text: "Item field is empty. Type in an item that you'd be willing to purchase.",   type: "error",   confirmButtonText: "Retry" });
+				return;
+		}
+		if (!price) {
+				swal({   title: "Error!",   text: "Price field is empty. Type in the price you'd be willing to pay.",   type: "error",   confirmButtonText: "Retry" });
+				return;
+		}
+		if (!email) {
+				swal({   title: "Error!",   text: "Email field is empty. Type in your email so we can get back to you.",   type: "error",   confirmButtonText: "Retry" });
+				return;
+		}
+		var params = 
+		{
+			item: item,
+			price: price,
+			email: email
+		};
+		$.post("suggestion", params, function(response) {
+			$("#suggestion_msg").fadeIn().delay(1000).fadeOut();
+			$("#suggestion_email").val("");
+			$("#suggestion_price").val("");
+			$("#suggestion_item").val("");
+			$("#needsmth").text("Anything else?");
+		});
+});
+		
+			
+
+$("#checkoutbutton").click(function(){
+	var expiry = $('.cc-exp').payment('cardExpiryVal');
+	//var validateExpiry = $.payment.validateCardExpiry(expiry["month"], expiry["year"]);
+	var params = 
+		{
+			first_name: $('#firstname').val(),
+			last_name: $('#lastname').val(),
+			number: $('#cc-num').val(),
+			type: $.payment.cardType($('input.cc-num').val()),
+			description: Date.now(),
+			expire_month: expiry["month"],
+			expire_year: expiry["year"],
+			amount: getAbsoluteCost(), //(parseFloat(getTotalCost()) + 5.00).toFixed(2),
+			summary: JSON.stringify(getSummary())
+		};
+
+	$.post("create", params, function(response) {
+			var state = response['state'];
+			console.log(response);
+			if (state === 'approved') {
+			  $('fieldset').empty();
+				$('fieldset').append($('<div><h1>Success!</h1><h2> Your order is on its way! </h2> <br> Keep the following confirmation number in your records: <br>' + response['id'] + ' <br> <br> Contact us at the.crumbs.org@gmail.com </div>'));
+			}
+			else {
+				swal({   title: "Error!",   text: "The order cannot be completed. Make sure the payment information is valid.",   type: "error",   confirmButtonText: "Retry" });
+			}
+		});
+	});
+
+	$(".confbutton").click(function() {
+			var summary = getSummary();
+			$("#conf_dormname").text(summary['dormname']);
+			$("#conf_dormnumber").text(summary['dormnumber']);
+			var now = new Date();
+			if (now.getHours() >= 17) {
+				$("#conf_deliverytime").text("Tomorrow 8:00pm");
+			}
+			else {
+				$("#conf_deliverytime").text("Today 8:00pm");
+			}
+			  
+			$("#costtable").empty();
+			for (var i = 0; i < summary['items'].length - 1; i++) {
+				$("#costtable").append($("<tr><td>" + summary['items'][i] + " x " + summary['quantities'][i] + "</td><td>$" + summary['itemcost'][i] + "</td></tr>"));
+			}
+
+	});
+});
+
+
+	</script>
+	
+<!-- multistep form -->
+<form id="msform">
+
+
+	<!-- progressbar -->
+	<ul id="progressbar">
+		<li class="active">Start</li>
+		<li>Items</li>
+		<li>Notes</li>
+		<li>Location</li>
+		<li>Confirmation</li>
+		<li>Checkout</li>
+	</ul>
+	<!-- fieldsets -->
+	<fieldset>
+		<div class="header">
+			<span id="logo">The Nibbles</span>
+			<br>
+			<div>
+				<img src="mcdonalds.png" style="height:75px;width:75px">
+				<img src="panera.jpg" style="height:75px;width:75px">
+				<img src="fiveguys.jpg" style="height:75px;width:75px">
+				<img src="kfc.svg" style="height:75px;width:75px">
+				<img src="tacobell.jpg" style="height:75px;width:75px">
+			</div>
+			<br>
+			Order before 5:30pm, for guaranteed delivery by 8pm.
+		</div>
+		<br>
+			<div style="background-color:#FFF4D4">
+			<span> ★★★★☆ Average Review: 4.3 stars </span><br>
+			<span id="reviewspan" class="fs-subtitle"></span>
+			</div>
+		<br>
+		<div id="slideshowdiv" style="display:none;margin-top:10px;margin-bottom:10px">
+				<img style="height:150px;width:150px" src="" id="slideshow"/>
+		</div>
+		<div id="advertisingdiv" style="background-color:#FFA6AB;margin-bottom:10px">
+			<div id="advertisingclose" style="height:15px;font-size:10px;text-align:right;padding-right:3px">-Close-</div>
+			<div style="width:20%;float:left"> 
+				<img style="text-align:left" height="150px" width="50px" src="lrg.png">
+			</div>
+			<div id="advertisingtext" style="width:80%;float:left"> 
+				<p>
+				Brought to you by <a href="http://longriverstudios.net">Long River Gallery & Gifts.</a>
+				</p>
+				<div style="text-align:left">
+					<br>
+					<p class="fs-subtitle"> Long River Gallery & Gifts is an art studio and cooperative in Lyme, offering space for <i>the</i> most talented local artists and crafters. <a href="http://theuppervalley.com/arts/long-river-of-lyme-a-local-commitment/">Why should I be interested in local artwork?</a>
+					</p>
+					<p class="fs-subtitle">Long River is committed to fighting poverty, and its owners, Dave ('79A) and Lisa Celone and artists have been supporting the Haven for many years.
+					</p>
+					<p class="fs-subtitle">Hours are 10AM - 6PM, Tue - Sun. Please visit! </p>
+					<div style="height:10px"></div>
+				</div>
+			</div>
+		</div>
+
+		<a href="mission">We are donating all proceeds to the Upper Valley Haven</a>
+		<br>
+
+		<input type="button" name="next" class="next action-button startpage" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">What are you looking for?</h2>
+		<h3 class="fs-subtitle">Running total: <span class="runningtotal">$0.00</span></h3>
+		<!-- Actual items start here -->

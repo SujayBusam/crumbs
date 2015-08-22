@@ -1,0 +1,6 @@
+kfcmeals1;Popcorn Nuggets, Mashed Potatoes and Gravy, Biscuit, Drink, Chocolate Chip Cookie;5.50
+kfcmeals2;3pcs Tender, Mashed Potatoes and Gravy, Biscuit, Drink, Choc Chip Cookie;5.50
+kfcmeals3;Famous Bowl, Drink, Choc Chip Cookie;5.50
+kfcmeals4;Breast Piece, Mashed Potatoes and Gravy, Biscuit, Drink, Choc Chip Cookie;5.50
+kfcmeals5;Pot Pie, Medium Drink, Choc Chip Cookie;5.50
+kfcmeals6;Drum and Thigh, Mashed Potatoes and Gravy, Biscuit, Drink, Choc Chip Cookie;5.50

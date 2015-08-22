@@ -1,0 +1,40 @@
+.paymentInfoTotal{
+  font-size: 1.25em;
+  background: url(http://lagra.gosseti.com/assets/demos/lock-408cb38bdb1dd2d7315461a5a7e4b6d6.svg) no-repeat center left;
+  -webkit-background-size: 1.5em;
+  background-size: 1.4em;
+  margin: .75em 0;
+  padding-left: 2em;
+}
+.paymentInput.identified{
+	border-color:#2ecc71;
+}
+ 
+.paymentInput.identified:focus{
+	border-color:#2ecc71;
+	box-shadow: 0 0 .1875em #2ecc71;
+}
+ 
+.cc-num__wrap{
+	position:relative;
+}
+ 
+.card{
+	position:absolute;
+	display:block;
+	right:.375em;
+	top:50%;
+	margin-top:-10px;
+	width:28px;
+	height:19px;
+	background-size: 28px 19px !important;
+	background-repeat: no-repeat;
+}
+ 
+.cardInfo__cc-exp,
+.cardInfo__cc-cvc{
+}
+ 
+.cardInfo__cc-exp{
+}
+ 

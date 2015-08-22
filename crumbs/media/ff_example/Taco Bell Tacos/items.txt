@@ -1,0 +1,15 @@
+tacobelltacos1;Crunchy Taco;1.52
+tacobelltacos2;Crunchy Taco Supreme;2.04
+tacobelltacos3;Soft Taco;1.52
+tacobelltacos4;Soft Taco Supreme;2.04
+tacobelltacos5;Crispy Potato Soft Taco;1.27
+tacobelltacos6;Grilled Steak Soft Taco;3.06
+tacobelltacos7;Double Decker Taco;2.42
+tacobelltacos8;Double Decker Taco Supreme;2.93
+tacobelltacos9;Chicken Soft Taco;2.29
+tacobelltacos10;Doritos Locos Taco (Nacho Cheese)	Regular;1.91
+tacobelltacos11;Doritos Locos Taco (Nacho Cheese)	Supreme;2.42
+tacobelltacos12;Doritos Locos Taco (Cool Ranch)	Regular;1.91
+tacobelltacos13;Doritos Locos Taco (Cool Ranch)	Supreme;2.42
+tacobelltacos14;Doritos Locos Taco (Fiery)	Regular;1.91
+tacobelltacos15;Doritos Locos Taco (Fiery)	Supreme;2.42

@@ -1,0 +1,15 @@
+supplements1;Equate Soluble Fiber, 125 servings;9.34
+supplements2;Culturelle Probiotics, 30ct;18.52
+supplements3;Spring Valley Biotin, 120ct;4.98
+supplements4;Spring Valley Gelatin, 100ct;2.98
+supplements5;Metamucil Fiber Wafers, 24ct;7.47
+supplements6;Spring Valley Gummy Melatonin, 60ct;5.96
+supplements7;Nature Made Fish Oil Omega 3, 100ct;9.98
+supplements8;Spring Valley Norwegian Cod Liver Oil;7.44
+supplements9;Vitafusion Women's Gummy Multivitamin, 150ct;10.88
+supplements10;Equate Women's Multivitamin, 100ct;3.98
+supplements11;Equate Men's Multivitamin, 100ct;3.98
+supplements12;Equate Adult Gummy Multivitamins, 150ct;8.74
+supplements13;Centrum Chewable Multivitamin, 100ct;9.97
+supplements14;Emergen-C Tangerine Packets, 30 packets;9.97
+

@@ -1,0 +1,9 @@
+mcdonaldsdrinks1;Drink (small);1.28
+mcdonaldsdrinks2;Drink (medium);1.65
+mcdonaldsdrinks3;Drink (large);1.91
+mcdonaldsdrinks4;Shake (small);2.80
+mcdonaldsdrinks5;Shake (medium);3.32
+mcdonaldsdrinks6;Shake (large);3.83
+mcdonaldsdrinks7;Smoothie (small);3.06
+mcdonaldsdrinks8;Smoothie (medium);3.70
+mcdonaldsdrinks9;Smoothie (large);4.34

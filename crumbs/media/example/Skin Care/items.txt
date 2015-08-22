@@ -1,0 +1,6 @@
+skincare1;Cetaphil for Dry, Sensitive, Skin Moisturizing Cream, 16 oz;9.71
+skincare2;Fruit of the Earth Aloe Vera Gel, 12 oz;3.97
+skincare3;St. Ives Blemish Control Apricot Scrub, 6 oz;3.54
+skincare4;T.N. Dickinson’s Face and Body Witch Hazel Astringment, 16 fl oz;3.19
+skincare5;Neutrogena Acne Treatment Oil-Free Acne Wash, 9.1 fl oz;6.47
+skincare6;Vaseline 100% Pure Petroleum Jelly, 13oz;3.50

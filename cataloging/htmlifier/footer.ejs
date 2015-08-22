@@ -1,0 +1,92 @@
+		<!-- End shopping items -->
+		<input type="button" name="previous" class="previous action-button afterstartpage" value="Previous" />
+		<input type="button" name="next" class="next action-button itemspage" value="Next" />
+		
+		
+		<div id="item_preview" style="display:none;z-index:100"><img id="preview_img"/></div>
+		<div id="suggestion_box" style="z-index:100">
+			<div class="message primary" style="text-align:left;padding:15px 25px">
+				<p><span id="needsmth">Need something not listed?</span> <span id="suggestion_msg" style="display:none"><i> Okay! We'll get back to you! </i></span></p>
+					<br>
+					<input type="text" name="suggestion_item" id="suggestion_item" placeholder="Item" style="height:35px;width:25%;margin-bottom:3px;padding:5px 5px">
+					<input type="text" name="suggestion_price" id="suggestion_price" placeholder="Price" style="height:35px;width:15%;margin-bottom:3px;padding:5px 5px">
+					<input type="text" name="suggestion_email" id="suggestion_email" placeholder="Email" style="height:35px;width:35%;margin-bottom:3px;padding:5px 5px">
+					<input type="button" class="suggestion-button" value="Tell us!" style="width:15%;height:35px;float:right;margin-bottom:3px">
+					    <div class="alert-close">×</div>
+				</div>
+
+		</div>
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Where are you?</h2>
+		<h3 class="fs-subtitle">We need to make sure we're delivering to the right place.</h3>
+		<input type="text" id="dormname" name="dormname" placeholder="Dorm Name (e.g. Fahey)" />
+		<input type="text" id="dormnumber" name="dormnumber" placeholder="Dorm Number (e.g. 123)" />
+		<input type="button" name="previous" class="previous action-button" value="Previous" />
+		<input type="button" name="next" class="next action-button confbutton locationpage" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Confirmation</h2>
+		<h3 class="fs-subtitle">Please review the information below and make sure it is correct</h3>
+		<div> Delivery to: <span id="conf_dormname"> </span> <span id="conf_dormnumber"> </span> </div>
+		<div> Latest Delivery time: <span id="conf_deliverytime"> </span> </span> </div>
+		<br>
+		<table id="costtable" border="1" style="width:100%">
+		</table>
+		<br>
+		<div> Subtotal: <span class="runningtotal"> $0.00 </span> </div>
+		<div id="deliveryfeemsg"> + $5.00 delivery fee <br> <span style="color:red">(order $25 or more and we won't charge!)</span></div>
+		<div id="bulkmsg"> <span style="color:green"> (+10% discount) </span> </div>
+		<br>
+		<div> Total: <span class="actualtotal"> $0.00 </span> </div>
+		<br>
+		<div> <input placeholder="Have a referral code?" style="width:60%" id="referralcodebox" type="text"/> 
+			<input type="button" id="referralbutton" value="Check" style="width:25%"> </input>
+			</div>
+			
+		<input type="button" name="previous" class="previous action-button" value="Previous" />
+		<input type="button" name="next" class="next action-button" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Checkout</h2>
+		<h3 class="fs-subtitle">You're one click away from items coming to your door.</h3>
+		<!-- PayPal Logo --><table style="width:200px;margin: 10px auto" border="0" cellpadding="10" cellspacing="0" align="center"><tr><td align="center"></td></tr><tr><td align="center"><a id="paypalbutton" href="#"><img src="https://www.paypalobjects.com/webstatic/mktg/logo-center/Security_Banner_234x60_2a.gif" border="0" alt="PayPal Logo"></a></td></tr></table><!-- PayPal Logo -->
+		<h5 style="margin-top:-10px;margin-bottom:-10px"> -or- </h5>
+		<div class="paymentInfo">
+			<p class="paymentInfoTotal">
+				Your card will be charged: <span class="paymentInfoPrice actualtotal">$0.00</span>
+			</p>
+		</div>
+		<!-- Credit Card Div -->
+		<input id="firstname" type="text" placeholder="First Name" style="text-align:left;width:30%">
+		<input id="lastname" type="text" placeholder="Last Name" style="text-align:left;width:30%">
+
+
+		<div class="form-row cardInfo__cc-num">
+			 <label for="cc-num"><abbr title="required">*</abbr><span>Card Number</span></label>
+			 <div class="cc-num__wrap">
+				 <!-- using type="tel" because type="number" doesn’t pass HTML5 form validation with jQuery.payment formatting -->
+				 <input id="cc-num" type="tel" class="paymentInput cc-num" placeholder="•••• •••• •••• ••••" autocompletetype="cc-number" required="required">
+				 <span class="card" aria-hidden="true"></span>
+			 </div>
+	 </div>
+		  
+	 <div class="form-row cardInfo__cc-exp">
+		 <label for="cc-exp"><abbr title="required">*</abbr><span>Expires</span></label>
+		 <input id="cc-exp" type="tel" class="paymentInput cc-exp" placeholder="MM / YY" autocompletetype="cc-exp" required="required">
+	 </div>
+		  
+	 <div class="form-row cardInfo__cc-cvc">
+		 <label for="cc-cvc"><abbr title="required">*</abbr><span>CVC</span></label>
+		 <input id="cc-cvc" type="tel" class="paymentInput cc-cvc" placeholder="CVC" autocompletetype="cc-cvc" required="required">
+	 </div>
+		<!-- Credit Card Div -->
+			<input type="button" name="previous" class="previous action-button confbutton" value="Previous" />
+			<input id="checkoutbutton" type="button"  name="submit" class="submit action-button" value="Checkout!" />
+			<div style="text-size:5px;color:grey">Only click Checkout once to avoid duplicate charges.</div>
+	</fieldset>
+</form>
+
+
+	</body>
+</html>

@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html>
+	<head>
+        <title>Crumbs - Same-Day Delivery for (almost) ANYTHING to your Dorm Room</title>
+				<meta charset="utf-8">
+
+				<!-- jQuery -->
+				<script src="http://thecodeplayer.com/uploads/js/jquery-1.9.1.min.js" type="text/javascript"></script>
+				<!-- jQuery easing plugin -->
+			  <script src="http://thecodeplayer.com/uploads/js/jquery.easing.min.js" type="text/javascript"></script>
+				<!-- JQuery payment -->
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.payment/1.2.3/jquery.payment.min.js" type="text/javascript"></script>
+				<script src="sweetalert/lib/sweet-alert.min.js"></script> 
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js" type="text/javascript"></script>
+				<link rel="stylesheet" type="text/css" href="sweetalert/lib/sweet-alert.css">
+				<link rel="stylesheet" type="text/css" href="crumbs.css">	
+				<link rel="stylesheet" type="text/css" href="payment.css">	
+				<link rel="stylesheet" type="text/css" href="suggestion.css">
+				<script type="text/javascript" src="reviews.json"></script>
+	</head>
+	<body>
+<script>
+	reviews = JSON.parse(reviews);
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-62507743-1', 'auto');
+	ga(‘set’, ‘&uid’, {{USER_ID}}); // Set the user ID using signed-in user_id.
+  ga('send', 'pageview');
+
+</script>	
+	<script>
+
+referralCode = "";
+referralApproval = false;
+
+totalCost = 0.0;
+totalItems = {};
+
+function timeStamp() {
+// Create a date object with the current time
+  var now = new Date();
+ 
+// Create an array with the current month, day and time
+  var date = [ now.getMonth() + 1, now.getDate(), now.getFullYear() ];
+ 
+// Create an array with the current hour, minute and second
+  var time = [ now.getHours(), now.getMinutes(), now.getSeconds() ];
+ 
+// Determine AM or PM suffix based on the hour
+  var suffix = ( time[0] < 12 ) ? "AM" : "PM";
+ 
+// Convert hour from military time
+  time[0] = ( time[0] < 12 ) ? time[0] : time[0] - 12;
+ 
+// If hour is 0, set it to 12
+  time[0] = time[0] || 12;
+ 
+// If seconds and minutes are less than 10, add a zero
+  for ( var i = 1; i < 3; i++ ) {
+    if ( time[i] < 10 ) {
+      time[i] = "0" + time[i];
+    }
+  }
+ 
+// Return the formatted string
+	if (!referralApproval) {
+  	return date.join("/") + " " + time.join(":") + " " + suffix;
+	}
+	else {
+  	return date.join("/") + " " + time.join(":") + " " + suffix + " " + referralCode;
+	}
+}
+
+function getTotalCost() {
+	runningCost = 0.0;
+	$(".shoppingquantity").each(function(i, obj) {
+		var price = $(obj).siblings('.shoppingprice').text().substring(1);
+		var quantity = $(obj).val();
+		runningCost = runningCost + price * quantity;
+	});
+	return runningCost.toFixed(2);
+}
+
+function getAbsoluteCost() {
+	var total = parseFloat(getTotalCost());
+	if (total > 100.0 || referralApproval) {
+		$("#bulkmsg").show();
+		if (total > 25.0) {
+			$("#deliveryfeemsg").hide();
+			return (total * 0.9).toFixed(2);
+		}
+		else {
+			return ((total + 5.00) * 0.9).toFixed(2);
+		}
+	}
+	if (total > 25.0) {
+		$("#deliveryfeemsg").hide();
+		$("#bulkmsg").hide();
+		return total.toFixed(2);
+	}
+	else {
+		$("#deliveryfeemsg").show();
+		$("#bulkmsg").hide()
+		return (total + 5.00).toFixed(2);
+	}
+}
+
+function getSummary() {
+	res = {};
+	res['cost'] = getAbsoluteCost(); //(parseFloat(getTotalCost()) + 5.00).toFixed(2);
+	res['items'] = [];
+	res['quantities'] = [];
+	res['itemcost'] = [];
+	$(".shoppingquantity").each(function(i, obj) {
+			var quantity = $(obj).val();
+			if (quantity > 0) {
+				res['items'].push($(obj).siblings('.shoppingitemname').text());
+				res['quantities'].push(quantity);
+				res['itemcost'].push((quantity * $(obj).siblings('.shoppingprice').text().substring(1)).toFixed(2));
+			}
+	});
+	res['dormname'] = $("#dormname").val();
+	res['dormnumber'] = $("#dormnumber").val();
+	res['timestamp'] = timeStamp();
+	return res;
+}
+
+function prepareList() {
+  $('#expList').find('li:has(ul)')
+  	.click( function(event) {
+  		if (this == event.target) {
+  			$(this).toggleClass('expanded');
+  			$(this).children('ul').toggle('medium');
+  		}
+  		return false;
+  	})
+  	.addClass('collapsed')
+  	.children('ul').hide();
+  };
+ 
+
+function validateDetails() {
+		// set variables for the expiry date validation, cvc validation and expiry date 'splitter'
+		var expiry = $('.cc-exp').payment('cardExpiryVal');
+		var validateExpiry = $.payment.validateCardExpiry(expiry["month"], expiry["year"]);
+		var validateCVC = $.payment.validateCardCVC($('.cc-cvc').val());
+		// if statement on whether the card’s expiry is valid or not
+
+		var cardType = $.payment.cardType($('input.cc-num').val());
+		console.log(cardType);
+		if (cardType === "amex") {
+			$('.card').css('background', "url('cards/amex.png')");
+			$('.card').show();
+		}
+		else if (cardType === "visa") {
+			$('.card').css('background', "url('cards/visa.png')");
+			$('.card').show();
+		}
+		else if (cardType === "mastercard") {
+			$('.card').css('background', "url('cards/mastercard.png')");
+			$('.card').show();
+		}
+		else if (cardType === "discover") {
+			$('.card').css('background', "url('cards/discover.png')");
+			$('.card').show();
+		}
+		else {
+			$('.card').hide();
+		}
+
+}
+
+
+$(window).on('resize', function() {
+	$("#advertisingdiv").css("height", $("#advertisingtext").height());
+	});
+
+
+$(document).ready(function() {
+
+		setTimeout( function() {
+			$("#advertisingdiv").css("height", $("#advertisingtext").height());
+			}, 2000);
+
+		$(".artistlink").click(function() {
+			window.location.href = $(this).attr("href");
+			});
+	
+$("#advertisingdiv").css("height", $("#advertisingtext").height());
+
+$("#advertisingclose").click(function() {
+	$("#slideshowdiv").show();
+	$("#advertisingdiv").hide();
+	});
+
+
+totalitems = $.find('.shoppingitemname').length;
+
+function changeSlideshow() {
+	var n = Math.floor(Math.random() * totalitems);
+	$("#slideshow").attr("src", $(".shoppingitemname").eq(n).data("imgpath"));
+}
+function changeReview() {
+	var n = Math.floor(Math.random() * reviews.length);
+	$("#reviewspan").text('"' + reviews[n] + '"');
+	}
+
+changeSlideshow();
+timer = setInterval(changeSlideshow, 2500);
+changeReview();
+reviewtimer = setInterval(changeReview, 5000);
+		
+//jQuery time
+var current_fs, next_fs, previous_fs; //fieldsets
+var left, opacity, scale; //fieldset properties which we will animate
+var animating; //flag to prevent quick multi-click glitches
+
+prepareList();
+
+$('.startpage').click(function() {
+	clearInterval(timer);
+	clearInterval(reviewtimer);
+});
+
+$('.afterstartpage').click(function() {
+	timer = setInterval(changeSlideshow, 2500);
+	reviewtimer = setInterval(changeReview, 5000);
+});
+
+$('.alert-close').on('click', function(c){
+		$(this).parent().fadeOut('slow', function(c){
+		});
+});	
+
+
+$('input.cc-num').payment('formatCardNumber');
+$('input.cc-exp').payment('formatCardExpiry');
+$('input.cc-cvc').payment('formatCardCVC');
+$('.shoppingquantity').payment('restrictNumeric');
+
+$("#collapseall").click(function() {
+	$("#expList").find('li:has(ul)').removeClass('expanded').children('ul').hide();
+	});
+ 
+// this runs the above function every time stuff is entered into the card inputs
+$('.paymentInput').bind('change paste keyup', function() {
+validateDetails();
+}); 
+
+$('.shoppingquantity').bind('change paste keyup', function() {
+	$('.runningtotal').text('$' + getTotalCost());
+	$('.actualtotal').text('$' + getAbsoluteCost()); //(parseFloat(getTotalCost()) + 5.00).toFixed(2));
+});
+
+$(".shoppingquantity").hover(function(e){
+	$("#preview_img").attr('src', $(this).siblings(".shoppingitemname").data("imgpath"));
+	$("#preview_img").css('height', "150px");
+	$("#preview_img").css('width', "150px");
+	$("#item_preview").show();
+	$("#suggestion_box").hide();
+}, function() {$("#item_preview").hide(); $("#suggestion_box").show();});
+	
+
+$(".shoppingitemname").hover(function(e){
+	$("#preview_img").attr('src', $(this).data("imgpath"));
+	$("#preview_img").css('height', "150px");
+	$("#preview_img").css('width', "150px");
+	$("#item_preview").show();
+	$("#suggestion_box").hide();
+}, function() {$("#item_preview").hide(); $("#suggestion_box").show();});
+
+$(".shoppingitemname").click(function(e) {
+		var oldval = $(this).siblings(".shoppingquantity").val();
+		if (!oldval) {
+		  $(this).siblings(".shoppingquantity").val(1);
+		}
+		else {
+		  $(this).siblings(".shoppingquantity").val(parseInt(oldval) + 1);
+		}
+	$('.runningtotal').text('$' + getTotalCost());
+	$('.actualtotal').text('$' + getAbsoluteCost()); //(parseFloat(getTotalCost()) + 5.00).toFixed(2));
+});
+	
+
+$(".next").click(function(){
+	if(animating) return false;
+	if($(this).hasClass('locationpage')) {
+		if ($("#dormname").val().length === 0) {
+			swal({   title: "Please enter your dorm name.",   type: "info",   confirmButtonText: "Okay!" });
+			return false;
+		}
+		if ($("#dormnumber").val().length === 0) {
+			swal({   title: "Please enter your dorm number.",   type: "info",   confirmButtonText: "Okay!" });
+			return false;
+		}
+	}
+	if($(this).hasClass('itemspage')) {
+	  if (getTotalCost() === "0.00") {
+			swal({   title: "You didn't order anything!", text: "To order something, type in the number of the item that you want into the 'Qty' boxes." , type: "warning",   confirmButtonText: "Grab some items!" });
+			return false;
+			
+		}
+	}
+	  
+	animating = true;
+	
+	current_fs = $(this).parent();
+	next_fs = $(this).parent().next();
+	
+	//activate next step on progressbar using the index of next_fs
+	$("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+	
+	//show the next fieldset
+	next_fs.show(); 
+	//hide the current fieldset with style
+	current_fs.animate({opacity: 0}, {
+		step: function(now, mx) {
+			//as the opacity of current_fs reduces to 0 - stored in "now"
+			//1. scale current_fs down to 80%
+			scale = 1 - (1 - now) * 0.2;
+			//2. bring next_fs from the right(50%)
+			left = (now * 50)+"%";
+			//3. increase opacity of next_fs to 1 as it moves in
+			opacity = 1 - now;
+			current_fs.css({'transform': 'scale('+scale+')'});
+			next_fs.css({'left': left, 'opacity': opacity});
+		}, 
+		duration: 800, 
+		complete: function(){
+			current_fs.hide();
+			animating = false;
+		}, 
+		//this comes from the custom easing plugin
+		easing: 'easeInOutBack'
+	});
+});
+
+$(".previous").click(function(){
+	if(animating) return false;
+	animating = true;
+	
+	current_fs = $(this).parent();
+	previous_fs = $(this).parent().prev();
+	
+	//de-activate current step on progressbar
+	$("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
+	
+	//show the previous fieldset
+	previous_fs.show(); 
+	//hide the current fieldset with style
+	current_fs.animate({opacity: 0}, {
+		step: function(now, mx) {
+			//as the opacity of current_fs reduces to 0 - stored in "now"
+			//1. scale previous_fs from 80% to 100%
+			scale = 0.8 + (1 - now) * 0.2;
+			//2. take current_fs to the right(50%) - from 0%
+			left = ((1-now) * 50)+"%";
+			//3. increase opacity of previous_fs to 1 as it moves in
+			opacity = 1 - now;
+			current_fs.css({'left': left});
+			previous_fs.css({'transform': 'scale('+scale+')', 'opacity': opacity});
+		}, 
+		duration: 800, 
+		complete: function(){
+			current_fs.hide();
+			animating = false;
+		}, 
+		//this comes from the custom easing plugin
+		easing: 'easeInOutBack'
+	});
+});
+
+$("#paypalbutton").click(function() {
+		var params = {
+			amount: getAbsoluteCost(), //(parseFloat(getTotalCost()) + 5.00).toFixed(2),
+			description: referralCode,
+			summary: JSON.stringify(getSummary())
+		};
+		$.post("paypal", params, function(response) {
+				$.cookie("summary-data", JSON.stringify(getSummary()));
+			  window.location.replace(response);
+			});
+});
+
+$("#referralbutton").click(function() {
+		var params = {
+			referralcode: $("#referralcodebox").val()
+		};
+		$.post("validatereferral", params, function(response) {
+			if (response === "Approved") {
+			    referralApproval = true;
+					referralCode = $("#referralcodebox").val();
+					$('.actualtotal').text('$' + getAbsoluteCost()); //(parseFloat(getTotalCost()) + 5.00).toFixed(2));
+			}
+			else {
+				swal({   title: "Error!",   text: "Invalid referral code.",   type: "error",   confirmButtonText: "Retry" });
+			}
+
+		});
+});
+
+$(".suggestion-button").click(function() {
+		console.log("clicked!");
+		var item = $("#suggestion_item").val();
+		var price = $("#suggestion_price").val();
+		var email = $("#suggestion_email").val();
+		if (!item) {
+				swal({   title: "Error!",   text: "Item field is empty. Type in an item that you'd be willing to purchase.",   type: "error",   confirmButtonText: "Retry" });
+				return;
+		}
+		if (!price) {
+				swal({   title: "Error!",   text: "Price field is empty. Type in the price you'd be willing to pay.",   type: "error",   confirmButtonText: "Retry" });
+				return;
+		}
+		if (!email) {
+				swal({   title: "Error!",   text: "Email field is empty. Type in your email so we can get back to you.",   type: "error",   confirmButtonText: "Retry" });
+				return;
+		}
+		var params = 
+		{
+			item: item,
+			price: price,
+			email: email
+		};
+		$.post("suggestion", params, function(response) {
+			$("#suggestion_msg").fadeIn().delay(1000).fadeOut();
+			$("#suggestion_email").val("");
+			$("#suggestion_price").val("");
+			$("#suggestion_item").val("");
+			$("#needsmth").text("Anything else?");
+		});
+});
+		
+			
+
+$("#checkoutbutton").click(function(){
+	var expiry = $('.cc-exp').payment('cardExpiryVal');
+	//var validateExpiry = $.payment.validateCardExpiry(expiry["month"], expiry["year"]);
+	var params = 
+		{
+			first_name: $('#firstname').val(),
+			last_name: $('#lastname').val(),
+			number: $('#cc-num').val(),
+			type: $.payment.cardType($('input.cc-num').val()),
+			description: referralCode,
+			expire_month: expiry["month"],
+			expire_year: expiry["year"],
+			amount: getAbsoluteCost(), //(parseFloat(getTotalCost()) + 5.00).toFixed(2),
+			summary: JSON.stringify(getSummary())
+		};
+
+	$.post("create", params, function(response) {
+			var state = response['state'];
+			console.log(response);
+			if (state === 'approved') {
+			  $('fieldset').empty();
+				$('fieldset').append($('<div><h1>Success!</h1><h2> Your order is on its way! </h2> <br> Keep the following confirmation number in your records: <br>' + response['id'] + ' <br> <br> Contact us at the.crumbs.org@gmail.com </div>'));
+			}
+			else {
+				swal({   title: "Error!",   text: "The order cannot be completed. Make sure the payment information is valid.",   type: "error",   confirmButtonText: "Retry" });
+			}
+		});
+	});
+
+	$(".confbutton").click(function() {
+			var summary = getSummary();
+			$("#conf_dormname").text(summary['dormname']);
+			$("#conf_dormnumber").text(summary['dormnumber']);
+			var now = new Date();
+			if (now.getHours() >= 17) {
+				$("#conf_deliverytime").text("Tomorrow 11pm");
+			}
+			else {
+				$("#conf_deliverytime").text("Today 11pm");
+			}
+			  
+			$("#costtable").empty();
+			for (var i = 0; i < summary['items'].length; i++) {
+				$("#costtable").append($("<tr><td>" + summary['items'][i] + " x " + summary['quantities'][i] + "</td><td>$" + summary['itemcost'][i] + "</td></tr>"));
+			}
+
+	});
+});
+
+
+	</script>
+	
+<!-- multistep form -->
+<form id="msform">
+
+
+	<!-- progressbar -->
+	<ul id="progressbar">
+		<li class="active">Start</li>
+		<li>Items</li>
+		<li>Location</li>
+		<li>Confirmation</li>
+		<li>Checkout</li>
+	</ul>
+	<!-- fieldsets -->
+	<fieldset>
+		<div class="header">
+			<span id="logo">The Crumbs</span>
+			<br>
+			Deliver <b>Walmart</b> to Your Room. <a href="http://thecrumbs.org/nibbles">Fast Food Too!</a>
+			<br>
+			Same-day delivery <b> guaranteed </b> for orders before 5pm.
+			<br>
+			<br>
+			<div style="background-color:#FFF4D4">
+			<span> ★★★★☆ Average Review: 4.3 stars </span><br>
+			<span id="reviewspan" class="fs-subtitle"></span>
+			</div>
+			<br>
+		</div>
+		<div id="slideshowdiv" style="display:none;margin-top:10px;margin-bottom:10px">
+				<img height="35%" width="35%" src="" id="slideshow"/>
+		</div>
+		<div id="advertisingdiv" style="background-color:#FFA6AB;margin-bottom:10px">
+			<div id="advertisingclose" style="height:15px;font-size:10px;text-align:right;padding-right:3px">-Close-</div>
+			<div style="width:20%;float:left"> 
+				<img style="text-align:left" height="150px" width="50px" src="lrg.png">
+			</div>
+			<div id="advertisingtext" style="width:80%;float:left"> 
+				<p>
+				Brought to you by <a href="http://longriverstudios.net">Long River Gallery & Gifts.</a>
+				</p>
+				<div style="text-align:left">
+					<br>
+					<p class="fs-subtitle"> Long River Gallery & Gifts is an art studio and cooperative in Lyme, offering space for <i>the</i> most talented local artists and crafters. <a href="http://theuppervalley.com/arts/long-river-of-lyme-a-local-commitment/">Why should I be interested in local artwork?</a>
+					</p>
+					<p class="fs-subtitle">Long River is committed to fighting poverty, and its owners, Dave ('79A) and Lisa Celone and artists have been supporting the Haven for many years.
+					</p>
+					<p class="fs-subtitle">Hours are 10AM - 6PM, Tue - Sun. Please visit! </p>
+					<div style="height:10px"></div>
+				</div>
+			</div>
+		</div>
+
+		<a href="mission">We are donating all proceeds to the Upper Valley Haven</a>
+		<br>
+
+		<input type="button" name="next" class="next action-button startpage" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">What are you looking for?</h2>
+		<h3 class="fs-subtitle">Running total: <span class="runningtotal">$0.00</span></h3>
+		<div style="color:red;margin-top:-10px"> Free delivery for orders over $25, </div>
+		<div style="color:red"> 10% off for orders over $100.</div>
+		<!-- Actual items start here -->
+<div id="listContainer" style="max-height:200px;overflow-y:auto">
+<ul id="expList">
+
+
+        <li style="background-color:#FFA6AB"> Long River Artists
+            <ul>
+                    <li class="shoppingitem"> <span data-imgpath="mattbrown.jpg" class="shoppingitemname"> <a class="artistlink" href="https://hangaprints.com/gallery/recent/?display=grid&print_id=above_king_ravine">Matt Brown</a></span><span class="shoppingprice"></span></li>
+                                <li class="shoppingitem"> <span data-imgpath="case.jpg" class="shoppingitemname"> <a class="artistlink" href="http://theuppervalley.com/events/art-and-jewelry-openingwine-tasting-at-long-river-studios-gallery-gifts-lyme-nh/">Case Hathaway-Zepeda '09</a> </span></li>
+                                            <li class="shoppingitem"> <span data-imgpath="lynn.jpg" class="shoppingitemname"> <a class="artistlink" href="http://www.lynnadams-metalsmith.com">Lynn Adams</a> </span></li>
+                                                        <li class="shoppingitem"> <span data-imgpath="sandra.jpg" class="shoppingitemname"> <a class="artistlink" href="http://sandrabomhowerjewelry.com">Sandra Bomhower</a> </span></li>
+                                                                    <li class="shoppingitem"> <span data-imgpath="isobel.jpg" class="shoppingitemname"> <a class="artistlink" href="http://www.isobelcochran.com">Isobel Cochran</a> </span></li>
+                                                                                <li class="shoppingitem"> <span data-imgpath="micki.jpg" class="shoppingitemname"> <a class="artistlink" href="http://www.megmclean.com">Meg Maclean</a> </span></li>
+                                                                                            <li class="shoppingitem"> <span data-imgpath="keita.jpg" class="shoppingitemname"> <a class="artistlink" href="http://www.keitacolton.com/">Keita Colton</a> </span></li>
+
+
+                                                                                                    </ul>
+                                                                                                        </li>
+        <li> Baking
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking22.jpg" class="shoppingitemname"> Arm and hammer baking soda</span> <span class="shoppingprice">$2.46</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking7.jpg" class="shoppingitemname"> Bertolli extra virgin olive oil</span> <span class="shoppingprice">$8.69</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking2.jpg" class="shoppingitemname"> Betty crocker chocolate chip cookie mix</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking3.jpg" class="shoppingitemname"> Betty crocker oatmeal cookie mix</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking4.jpg" class="shoppingitemname"> Betty crocker red velvet cake mix</span> <span class="shoppingprice">$1.41</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking5.jpg" class="shoppingitemname"> Crisco vegetable oil, 48 oz</span> <span class="shoppingprice">$3.06</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking1.jpg" class="shoppingitemname"> Ghiradelli brownie mix</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking8.jpg" class="shoppingitemname"> Great value cane sugar, 10lb</span> <span class="shoppingprice">$6.03</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking19.jpg" class="shoppingitemname"> Great value graham 9” pie crust</span> <span class="shoppingprice">$1.65</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking23.jpg" class="shoppingitemname"> Heinz apple cider vinegar, 32ox</span> <span class="shoppingprice">$2.33</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking9.jpg" class="shoppingitemname"> Hershey’s chocolate syrup</span> <span class="shoppingprice">$2.51</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking20.jpg" class="shoppingitemname"> Jell-o instant chocolate pudding</span> <span class="shoppingprice">$1.45</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking21.jpg" class="shoppingitemname"> Jell-o strawberry gelatin dessert</span> <span class="shoppingprice">$1.45</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking17.jpg" class="shoppingitemname"> Mccormick black pepper</span> <span class="shoppingprice">$3.58</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking13.jpg" class="shoppingitemname"> Mccormick vanilla extract, 16 fl oz</span> <span class="shoppingprice">$8.78</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking14.jpg" class="shoppingitemname"> Mccormick vanilla extract, 2 fl oz</span> <span class="shoppingprice">$4.53</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking18.jpg" class="shoppingitemname"> Morton iodized salt</span> <span class="shoppingprice">$0.95</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking16.jpg" class="shoppingitemname"> Nestle toll house real milk chocolate chips, 11.5oz</span> <span class="shoppingprice">$2.75</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking15.jpg" class="shoppingitemname"> Nestle toll house real semi-sweet chocolate chips, 12oz</span> <span class="shoppingprice">$2.90</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking6.jpg" class="shoppingitemname"> Pam olive oil cooking spray</span> <span class="shoppingprice">$3.06</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking10.jpg" class="shoppingitemname"> Pillsbury chocolate fudge frosting</span> <span class="shoppingprice">$1.72</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking11.jpg" class="shoppingitemname"> Pillsbury milk chocolate frosting</span> <span class="shoppingprice">$1.72</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Baking/baking12.jpg" class="shoppingitemname"> Pillsbury vanilla frosting</span> <span class="shoppingprice">$1.72</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Bath and body
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody1.jpg" class="shoppingitemname"> Banana boat sunscreen spf50</span> <span class="shoppingprice">$8.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody12.jpg" class="shoppingitemname"> Bath sponge</span> <span class="shoppingprice">$2.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody21.jpg" class="shoppingitemname"> Bounty paper towels, white, 6pk</span> <span class="shoppingprice">$9.88</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody16.jpg" class="shoppingitemname"> Chapstick (3)</span> <span class="shoppingprice">$3.23</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody17.jpg" class="shoppingitemname"> Charmin ultra soft toilet paper, 12</span> <span class="shoppingprice">$13.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody18.jpg" class="shoppingitemname"> Clorox disinfecting wipes</span> <span class="shoppingprice">$5.09</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody2.jpg" class="shoppingitemname"> Coppertone sunscreen lotion spf50</span> <span class="shoppingprice">$8.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody3.jpg" class="shoppingitemname"> Dove moisture body wash, 14.5 fl oz (pack of 2)</span> <span class="shoppingprice">$7.57</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody15.jpg" class="shoppingitemname"> Eos sweet mint lip balm</span> <span class="shoppingprice">$3.26</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody8.jpg" class="shoppingitemname"> Fusion shaving gel</span> <span class="shoppingprice">$4.33</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody6.jpg" class="shoppingitemname"> Germ-x sanitizer, 10 oz</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody7.jpg" class="shoppingitemname"> Germ-x soft wipes</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody19.jpg" class="shoppingitemname"> Irish spring bar soap, 3ct</span> <span class="shoppingprice">$3.86</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody20.jpg" class="shoppingitemname"> Irish spring body wash</span> <span class="shoppingprice">$4.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody14.jpg" class="shoppingitemname"> Natural bristle bath brush</span> <span class="shoppingprice">$5.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody11.jpg" class="shoppingitemname"> Neutrogena oil-free acne wash cream cleanser, 6 fl oz</span> <span class="shoppingprice">$7.91</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody5.jpg" class="shoppingitemname"> Olay body wash, 23.6 fl oz</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody22.jpg" class="shoppingitemname"> Puffs basic facial tissues, 2pk</span> <span class="shoppingprice">$4.09</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody13.jpg" class="shoppingitemname"> Shower cap</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody10.jpg" class="shoppingitemname"> Suave advanced therapy lotion, 32 fl oz</span> <span class="shoppingprice">$4.32</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody4.jpg" class="shoppingitemname"> Suave men 3-in-1 shampoo+conditioner+body wash, 28 fl oz</span> <span class="shoppingprice">$3.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Bath%20and%20Body/bathandbody9.jpg" class="shoppingitemname"> Vaseline cocoa radiant body lotion, 20.3 fl oz</span> <span class="shoppingprice">$6.57</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Beverages
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages20.jpg" class="shoppingitemname"> 5-hour energy berry, 10pk</span> <span class="shoppingprice">$19.78</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages12.jpg" class="shoppingitemname"> Arnold palmer half and half lite iced tea/lemonade</span> <span class="shoppingprice">$3.06</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages26.jpg" class="shoppingitemname"> Canada dry 2l ginger ale</span> <span class="shoppingprice">$1.63</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages6.jpg" class="shoppingitemname"> Capri sun pacific cooler mixed fruit juice drink pouches, 10ct</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages13.jpg" class="shoppingitemname"> Celestial seasonings sleepytime herbal tea, 20ct</span> <span class="shoppingprice">$2.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages23.jpg" class="shoppingitemname"> Clear polar seltzer water 1l</span> <span class="shoppingprice">$1.32</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages8.jpg" class="shoppingitemname"> Coca-cola 2l</span> <span class="shoppingprice">$1.63</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages10.jpg" class="shoppingitemname"> Coca-cola zero 2l</span> <span class="shoppingprice">$1.63</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages9.jpg" class="shoppingitemname"> Diet coke 2l</span> <span class="shoppingprice">$1.63</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages14.jpg" class="shoppingitemname"> Folgers medium classic roast ground coffee</span> <span class="shoppingprice">$10.65</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages17.jpg" class="shoppingitemname"> Gatorade g frost glacier freeze, 8pk</span> <span class="shoppingprice">$6.58</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages19.jpg" class="shoppingitemname"> Gatorade g lemon-lime, 8pk</span> <span class="shoppingprice">$6.58</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages18.jpg" class="shoppingitemname"> Gatorade g orange, 8pk</span> <span class="shoppingprice">$6.58</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages2.jpg" class="shoppingitemname"> Hawaiian punch, 1 gal</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages11.jpg" class="shoppingitemname"> Lipton tea bags, 100ct</span> <span class="shoppingprice">$4.54</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages5.jpg" class="shoppingitemname"> Mott’s original apple juice</span> <span class="shoppingprice">$2.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages16.jpg" class="shoppingitemname"> Nestle pure life purified water, 8pk</span> <span class="shoppingprice">$2.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages24.jpg" class="shoppingitemname"> Nestle waters bottled spring water, 0.5 liter, 24 count</span> <span class="shoppingprice">$10.95</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages1.jpg" class="shoppingitemname"> Ocean spray cranberry juice</span> <span class="shoppingprice">$5.48</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages29.jpg" class="shoppingitemname"> Organic fat free milk, half gallon</span> <span class="shoppingprice">$3.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages28.jpg" class="shoppingitemname"> Organic low fat milk, half gallon</span> <span class="shoppingprice">$3.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages27.jpg" class="shoppingitemname"> Organic whole milk, half gallon</span> <span class="shoppingprice">$3.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages21.jpg" class="shoppingitemname"> Red bull energy drink, 4ct</span> <span class="shoppingprice">$6.58</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages25.jpg" class="shoppingitemname"> Schweppes 12pk ginger ale</span> <span class="shoppingprice">$4.40</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages7.jpg" class="shoppingitemname"> Sprite 2 l</span> <span class="shoppingprice">$1.63</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages15.jpg" class="shoppingitemname"> Starbucks frappuccino mocha coffe drink, 4pk</span> <span class="shoppingprice">$11.46</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages4.jpg" class="shoppingitemname"> V8 vegetable juice</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Beverages/beverages3.jpg" class="shoppingitemname"> Welch’s bottled grape juice</span> <span class="shoppingprice">$5.48</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Breakfast and cereal
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal20.jpg" class="shoppingitemname"> Apple cinnamon nutrigrain, 8ct</span> <span class="shoppingprice">$3.06</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal7.jpg" class="shoppingitemname"> Apple jacks</span> <span class="shoppingprice">$3.78</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal19.jpg" class="shoppingitemname"> Blueberry streusel bars, 5ct</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal14.jpg" class="shoppingitemname"> Cap'n crunch</span> <span class="shoppingprice">$3.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal1.jpg" class="shoppingitemname"> Cheerios</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal9.jpg" class="shoppingitemname"> Cinammon toast crunch</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal10.jpg" class="shoppingitemname"> Cocoa krispies cereal</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal3.jpg" class="shoppingitemname"> Fiber one original</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal6.jpg" class="shoppingitemname"> Froot loops</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal16.jpg" class="shoppingitemname"> Frosted flakes</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal15.jpg" class="shoppingitemname"> Honey nut cheerios</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal13.jpg" class="shoppingitemname"> Lucky charms cereal</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal21.jpg" class="shoppingitemname"> Quaker (variety) instant oatmeal</span> <span class="shoppingprice">$2.75</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal4.jpg" class="shoppingitemname"> Quaker life multigrain original</span> <span class="shoppingprice">$3.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal2.jpg" class="shoppingitemname"> Raisin bran</span> <span class="shoppingprice">$4.05</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal11.jpg" class="shoppingitemname"> Rice krispies cereal</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal5.jpg" class="shoppingitemname"> Special k</span> <span class="shoppingprice">$4.05</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal12.jpg" class="shoppingitemname"> Special k protein cereal</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal17.jpg" class="shoppingitemname"> Strawberry pop tarts</span> <span class="shoppingprice">$3.85</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal18.jpg" class="shoppingitemname"> Strawberry streusel bars, 12ct</span> <span class="shoppingprice">$6.25</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Breakfast%20and%20Cereal/breakfastandcereal8.jpg" class="shoppingitemname"> Wheaties</span> <span class="shoppingprice">$4.05</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Electronics
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics7.jpg" class="shoppingitemname"> Apple lightning to usb cable</span> <span class="shoppingprice">$19.24</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics2.jpg" class="shoppingitemname"> Beats on-ear headphones</span> <span class="shoppingprice">$220.00</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics6.jpg" class="shoppingitemname"> Belkin mini displayport to hdmi adapter</span> <span class="shoppingprice">$15.85</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics10.jpg" class="shoppingitemname"> Casio graphing calculator</span> <span class="shoppingprice">$51.56</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics12.jpg" class="shoppingitemname"> Energizer aa, 8 pack</span> <span class="shoppingprice">$4.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics11.jpg" class="shoppingitemname"> Energizer aaa, 8 pack</span> <span class="shoppingprice">$4.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics8.jpg" class="shoppingitemname"> Ge 6-outlet surge protector</span> <span class="shoppingprice">$7.39</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics3.jpg" class="shoppingitemname"> Hdmi cable</span> <span class="shoppingprice">$7.48</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics4.jpg" class="shoppingitemname"> Hamilton beach programmable electric kettle</span> <span class="shoppingprice">$43.91</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics1.jpg" class="shoppingitemname"> Jvc hav570 dj headphones</span> <span class="shoppingprice">$11.56</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics5.jpg" class="shoppingitemname"> Onn 7' network cable</span> <span class="shoppingprice">$4.39</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Electronics/electronics9.jpg" class="shoppingitemname"> Ti 30-x scientific calculator</span> <span class="shoppingprice">$14.27</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Fragrances
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Fragrances/fragrances6.jpg" class="shoppingitemname"> Axe gold temptation body spray, 4 oz</span> <span class="shoppingprice">$4.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fragrances/fragrances5.jpg" class="shoppingitemname"> Bod man black body spray, 8 fl oz</span> <span class="shoppingprice">$7.68</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fragrances/fragrances1.jpg" class="shoppingitemname"> Body fantasies white must fragrance body spray, 8 fl oz</span> <span class="shoppingprice">$5.46</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fragrances/fragrances2.jpg" class="shoppingitemname"> Designer imposters deodorant body spray, 2.5 oz</span> <span class="shoppingprice">$3.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fragrances/fragrances7.jpg" class="shoppingitemname"> Mitchum men's deodorant, 2pk</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fragrances/fragrances8.jpg" class="shoppingitemname"> Mitchum women's deodorant, 2pk</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fragrances/fragrances4.jpg" class="shoppingitemname"> Old spice classic cologne, 4.25 fl oz</span> <span class="shoppingprice">$8.22</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fragrances/fragrances3.jpg" class="shoppingitemname"> Parfums de coeur capri breeze fragrance deodorant body spray, 2.5 oz</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li style="color:green">Fresh produce
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce13.jpg" class="shoppingitemname"> Avocado</span> <span class="shoppingprice">$1.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce14.jpg" class="shoppingitemname"> Avocado, organic</span> <span class="shoppingprice">$2.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce26.jpg" class="shoppingitemname"> Baguette</span> <span class="shoppingprice">$2.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce20.jpg" class="shoppingitemname"> Banana, 1lb</span> <span class="shoppingprice">$1.10</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce2.jpg" class="shoppingitemname"> Blueberries, 6oz</span> <span class="shoppingprice">$3.85</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce17.jpg" class="shoppingitemname"> Carrots</span> <span class="shoppingprice">$2.48</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce21.jpg" class="shoppingitemname"> Coconut</span> <span class="shoppingprice">$1.10</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce9.jpg" class="shoppingitemname"> Crisp celery bunch</span> <span class="shoppingprice">$2.07</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce3.jpg" class="shoppingitemname"> Gala apples, 1lb</span> <span class="shoppingprice">$2.52</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce22.jpg" class="shoppingitemname"> Kiwi</span> <span class="shoppingprice">$0.55</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce23.jpg" class="shoppingitemname"> Lemons, 1lb</span> <span class="shoppingprice">$1.71</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce5.jpg" class="shoppingitemname"> Lettuce</span> <span class="shoppingprice">$1.76</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce6.jpg" class="shoppingitemname"> Mango</span> <span class="shoppingprice">$1.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce18.jpg" class="shoppingitemname"> Naked juice 15.2oz</span> <span class="shoppingprice">$3.03</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce11.jpg" class="shoppingitemname"> Onion, 1lb</span> <span class="shoppingprice">$1.65</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce19.jpg" class="shoppingitemname"> Orange, 1lb</span> <span class="shoppingprice">$1.10</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce25.jpg" class="shoppingitemname"> Peaches, 1lb</span> <span class="shoppingprice">$3.66</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce24.jpg" class="shoppingitemname"> Pears, 1lb</span> <span class="shoppingprice">$2.44</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce12.jpg" class="shoppingitemname"> Portabella mushrooms, 12oz</span> <span class="shoppingprice">$4.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce8.jpg" class="shoppingitemname"> Potatoes 8lb</span> <span class="shoppingprice">$4.95</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce4.jpg" class="shoppingitemname"> Red seedless grapes</span> <span class="shoppingprice">$3.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce7.jpg" class="shoppingitemname"> Seedless cucumber</span> <span class="shoppingprice">$1.93</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce1.jpg" class="shoppingitemname"> Strawberries, 1lb</span> <span class="shoppingprice">$3.85</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce10.jpg" class="shoppingitemname"> Sweet corn</span> <span class="shoppingprice">$0.55</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce15.jpg" class="shoppingitemname"> Tomato</span> <span class="shoppingprice">$0.88</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce16.jpg" class="shoppingitemname"> Tomato, organic</span> <span class="shoppingprice">$1.32</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce27.jpg" class="shoppingitemname"> Wheat bread</span> <span class="shoppingprice">$2.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Fresh%20Produce/freshproduce28.jpg" class="shoppingitemname"> Wonderbread (white)</span> <span class="shoppingprice">$3.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Hair
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair26.jpg" class="shoppingitemname"> Aussie moist conditioner, 29.2 fl oz</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair1.jpg" class="shoppingitemname"> Aussie moist shampoo 13.5 fl oz</span> <span class="shoppingprice">$3.27</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair17.jpg" class="shoppingitemname"> Cantu for natural hair moisturizing curl activator cream, 12 oz</span> <span class="shoppingprice">$6.57</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair12.jpg" class="shoppingitemname"> Conair infiniti you curl</span> <span class="shoppingprice">$24.19</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair11.jpg" class="shoppingitemname"> Conair mid-size dryer</span> <span class="shoppingprice">$14.26</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair22.jpg" class="shoppingitemname"> Conair sectioning and styling combs</span> <span class="shoppingprice">$2.93</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair19.jpg" class="shoppingitemname"> Conair velvet touch round hairbrush</span> <span class="shoppingprice">$2.90</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair15.jpg" class="shoppingitemname"> Dove strength+care nourishing amplifier mouse, 7 oz</span> <span class="shoppingprice">$4.33</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair7.jpg" class="shoppingitemname"> Garnier daily care 2-1 shampoo and conditioner, 25.4 fl oz</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair6.jpg" class="shoppingitemname"> Garnier fruits color shield shampoo, 25.4 oz</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair16.jpg" class="shoppingitemname"> Garnier volumnizing anti-humidity hairspray, 8.25 oz</span> <span class="shoppingprice">$3.26</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair23.jpg" class="shoppingitemname"> Girls’ woven headbands, 6 count</span> <span class="shoppingprice">$3.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair24.jpg" class="shoppingitemname"> Goody neon lights gentle scrunchies, 8 count</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair20.jpg" class="shoppingitemname"> Goody ouchless comfort fit headbands, 6 count</span> <span class="shoppingprice">$3.26</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair5.jpg" class="shoppingitemname"> Head and shoulders classic clean 2-1 shampoo and conditioner, 14.2 fl oz</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair3.jpg" class="shoppingitemname"> Head and shoulders classic clean dandruff shampoo, 33.9 fl oz</span> <span class="shoppingprice">$10.31</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair4.jpg" class="shoppingitemname"> Pantene pro-v truly natural hair co-wash cleansing conditioner, 21.1 fl oz</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair9.jpg" class="shoppingitemname"> Remington anti-static digital ceramic 1” flat iron</span> <span class="shoppingprice">$18.39</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair13.jpg" class="shoppingitemname"> Revlon perfect heat 1” curling iron</span> <span class="shoppingprice">$9.99</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair21.jpg" class="shoppingitemname"> Scunci hair clips, 3 count</span> <span class="shoppingprice">$2.71</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair18.jpg" class="shoppingitemname"> Scunci no damage hair ties, black, 15 count</span> <span class="shoppingprice">$2.39</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair10.jpg" class="shoppingitemname"> Straight by revlon ceramic straightner 1”</span> <span class="shoppingprice">$10.82</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair8.jpg" class="shoppingitemname"> Style by revlon dryer</span> <span class="shoppingprice">$10.82</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair25.jpg" class="shoppingitemname"> Suave professionals almond +shea butter conditioner, 28 oz</span> <span class="shoppingprice">$3.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair2.jpg" class="shoppingitemname"> Suave professionals almond and shea butter shampoo, 28oz</span> <span class="shoppingprice">$3.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Hair/hair14.jpg" class="shoppingitemname"> Suave professionals captivating curls whipped cream mouse, 7 oz</span> <span class="shoppingprice">$3.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Humidifiers
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Humidifiers/humidifiers1.jpg" class="shoppingitemname"> Procare cool mist humidifer</span> <span class="shoppingprice">$25.23</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Humidifiers/humidifiers2.jpg" class="shoppingitemname"> Procare wf2 humidifier filter</span> <span class="shoppingprice">$5.98</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Humidifiers/humidifiers4.jpg" class="shoppingitemname"> Vick's soothing menthol vapopads, 6pk</span> <span class="shoppingprice">$5.75</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Humidifiers/humidifiers3.jpg" class="shoppingitemname"> Vick's warm mist humidifier</span> <span class="shoppingprice">$27.50</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Instant meals
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Instant%20Meals/instantmeals3.jpg" class="shoppingitemname"> Campbell's chicken noodle soup</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Instant%20Meals/instantmeals2.jpg" class="shoppingitemname"> Chef boyardee, teriyaki beef flavor</span> <span class="shoppingprice">$3.98</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Instant%20Meals/instantmeals4.jpg" class="shoppingitemname"> Cup of noodles, beef, 12pk</span> <span class="shoppingprice">$4.40</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Instant%20Meals/instantmeals5.jpg" class="shoppingitemname"> Cup of noodles, chicken, 12pk</span> <span class="shoppingprice">$4.40</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Instant%20Meals/instantmeals1.jpg" class="shoppingitemname"> Kraft easy mac, 4ct</span> <span class="shoppingprice">$4.12</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Makeup
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup18.jpg" class="shoppingitemname"> Burt’s bees beeswax lip balm</span> <span class="shoppingprice">$3.27</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup3.jpg" class="shoppingitemname"> Clean and clear essentials foaming facial cleanser, 8 fl oz</span> <span class="shoppingprice">$4.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup4.jpg" class="shoppingitemname"> Covergirl smoothers concealer</span> <span class="shoppingprice">$6.91</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup7.jpg" class="shoppingitemname"> Covergirl plus eye pencil</span> <span class="shoppingprice">$5.76</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup8.jpg" class="shoppingitemname"> L’oreal palette eyeshadow, 01 nude</span> <span class="shoppingprice">$17.42</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup1.jpg" class="shoppingitemname"> L’oriel paris true match super blendable liquid makeup (18 colors)</span> <span class="shoppingprice">$8.77</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup5.jpg" class="shoppingitemname"> Maybelline lash sensational mascara</span> <span class="shoppingprice">$7.63</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup2.jpg" class="shoppingitemname"> Maybelline mineral power powder foundation (6 colors)</span> <span class="shoppingprice">$9.87</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup6.jpg" class="shoppingitemname"> Maybelline unstoppable eyeliner</span> <span class="shoppingprice">$6.53</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup20.jpg" class="shoppingitemname"> Neutrogena makeup removing cleansing towelettes, 25 count</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup14.jpg" class="shoppingitemname"> Onyx 100% pure acetone nail polish remover, 16 fl oz</span> <span class="shoppingprice">$2.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup19.jpg" class="shoppingitemname"> Q-tips cotton swabs, 750 count</span> <span class="shoppingprice">$5.25</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup15.jpg" class="shoppingitemname"> Revlon compact emery file</span> <span class="shoppingprice">$3.16</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup16.jpg" class="shoppingitemname"> Revlon lipstick (24 colors)</span> <span class="shoppingprice">$5.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup17.jpg" class="shoppingitemname"> Rimmel lipgloss (8 colors)</span> <span class="shoppingprice">$4.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup10.jpg" class="shoppingitemname"> Sally hansen hard as nails nail color, blackheart</span> <span class="shoppingprice">$2.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup9.jpg" class="shoppingitemname"> Sally hansen hard as nails nail color, crystal clear</span> <span class="shoppingprice">$2.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup12.jpg" class="shoppingitemname"> Sally hansen hard as nails nail color, hard to get</span> <span class="shoppingprice">$2.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup13.jpg" class="shoppingitemname"> Sally hansen hard as nails nail color, love rocks</span> <span class="shoppingprice">$2.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Makeup/makeup11.jpg" class="shoppingitemname"> Sally hansen hard as nails nail color, no hard feelings</span> <span class="shoppingprice">$2.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Medicine
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine10.jpg" class="shoppingitemname"> Band-aids flexible fabric, 20ct</span> <span class="shoppingprice">$3.06</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine6.jpg" class="shoppingitemname"> Benadryl allergy relief, 48ct</span> <span class="shoppingprice">$7.13</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine2.jpg" class="shoppingitemname"> Dayquil cold & flu relief</span> <span class="shoppingprice">$8.77</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine9.jpg" class="shoppingitemname"> Equate hydrocortisone</span> <span class="shoppingprice">$5.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine5.jpg" class="shoppingitemname"> Mucinex congestion relief, 20ct</span> <span class="shoppingprice">$12.07</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine8.jpg" class="shoppingitemname"> Neosporin antibiotic ointment</span> <span class="shoppingprice">$7.12</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine1.jpg" class="shoppingitemname"> Nyquil cold & flu relief</span> <span class="shoppingprice">$8.77</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine14.jpg" class="shoppingitemname"> Nyquil cold and flu liquigels (24ct)</span> <span class="shoppingprice">$8.77</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine11.jpg" class="shoppingitemname"> Plan b emergency contraceptive (levonorgestrel)</span> <span class="shoppingprice">$51.56</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine13.jpg" class="shoppingitemname"> Robitussin congestion dm, 8ox</span> <span class="shoppingprice">$9.87</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine3.jpg" class="shoppingitemname"> Tylenol caplets, 100ct</span> <span class="shoppingprice">$9.85</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine7.jpg" class="shoppingitemname"> Zyrtec 24 hour allergy tablets, 14ct</span> <span class="shoppingprice">$14.23</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Medicine/medicine12.jpg" class="shoppingitemname"> Zzzquil nighttime sleep-aid liquicaps, 24 count</span> <span class="shoppingprice">$8.22</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Oral care
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Oral%20Care/oralcare4.jpg" class="shoppingitemname"> Colgate medium toothbrush</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Oral%20Care/oralcare1.jpg" class="shoppingitemname"> Colgate toothpaste 2 pack</span> <span class="shoppingprice">$6.56</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Oral%20Care/oralcare7.jpg" class="shoppingitemname"> Crest 3d teeth whitening strips, 20 count</span> <span class="shoppingprice">$45.09</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Oral%20Care/oralcare6.jpg" class="shoppingitemname"> Crest glide floss pack, mint, 2 count</span> <span class="shoppingprice">$6.35</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Oral%20Care/oralcare2.jpg" class="shoppingitemname"> Listerine mouthwash</span> <span class="shoppingprice">$7.25</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Oral%20Care/oralcare8.jpg" class="shoppingitemname"> Oral-b 3d white action power toothbrush</span> <span class="shoppingprice">$6.52</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Oral%20Care/oralcare3.jpg" class="shoppingitemname"> Oral­b soft bristle toothbrush, 4 count</span> <span class="shoppingprice">$7.45</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Oral%20Care/oralcare5.jpg" class="shoppingitemname"> Plackers mint dental flossers, 150 count</span> <span class="shoppingprice">$3.56</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Party packs
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks16.jpg" class="shoppingitemname"> Coca-cola 2l</span> <span class="shoppingprice">$1.63</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks18.jpg" class="shoppingitemname"> Coca-cola zero 2l</span> <span class="shoppingprice">$1.63</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks17.jpg" class="shoppingitemname"> Diet coke 2l</span> <span class="shoppingprice">$1.63</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks7.jpg" class="shoppingitemname"> Doritos nacho cheese 15.5 oz</span> <span class="shoppingprice">$4.39</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks5.jpg" class="shoppingitemname"> Great value 18 oz grip plastic cups 50 ct</span> <span class="shoppingprice">$3.82</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks1.jpg" class="shoppingitemname"> Great value heavy duty 9" paper plates, 140ct</span> <span class="shoppingprice">$6.53</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks3.jpg" class="shoppingitemname"> Great value white forks 100ct</span> <span class="shoppingprice">$2.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks4.jpg" class="shoppingitemname"> Great value white spoons 100ct</span> <span class="shoppingprice">$2.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks8.jpg" class="shoppingitemname"> Lay's barbecue flavored potato chips, 15.25 oz</span> <span class="shoppingprice">$4.39</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks6.jpg" class="shoppingitemname"> Lay's classic potato chips 10.5 oz</span> <span class="shoppingprice">$3.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks9.jpg" class="shoppingitemname"> Nabisco chips ahoy! chewy chocolate chip cookies</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks19.jpg" class="shoppingitemname"> Nestle pure life purified water, 12pk</span> <span class="shoppingprice">$2.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks15.jpg" class="shoppingitemname"> Sprite 2 l</span> <span class="shoppingprice">$1.63</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks12.jpg" class="shoppingitemname"> Tostitos creamy spinach dip 23 oz</span> <span class="shoppingprice">$4.52</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks13.jpg" class="shoppingitemname"> Tostitos medium chunky salsa 15.5 oz</span> <span class="shoppingprice">$2.75</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks11.jpg" class="shoppingitemname"> Tostitos medium salsa con queso 23 oz</span> <span class="shoppingprice">$4.93</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Party%20Packs/partypacks10.jpg" class="shoppingitemname"> Tostitos restaurant style tortilla chips</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Recreation
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation2.jpg" class="shoppingitemname"> 26" huffy nel lusso woman's crusier bike</span> <span class="shoppingprice">$141.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation3.jpg" class="shoppingitemname"> Bell black helmet</span> <span class="shoppingprice">$27.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation8.jpg" class="shoppingitemname"> Bell cable lock</span> <span class="shoppingprice">$5.46</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation10.jpg" class="shoppingitemname"> Bicycle playing card deck (2-pack)</span> <span class="shoppingprice">$4.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation11.jpg" class="shoppingitemname"> Cannonball water balloons,50</span> <span class="shoppingprice">$5.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation12.jpg" class="shoppingitemname"> Colored water balloons,1200</span> <span class="shoppingprice">$18.58</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation6.jpg" class="shoppingitemname"> Frisbee, 1ct</span> <span class="shoppingprice">$1.07</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation5.jpg" class="shoppingitemname"> Gold's gym 18" foam roller</span> <span class="shoppingprice">$16.25</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation4.jpg" class="shoppingitemname"> Gold's gym exercise mat</span> <span class="shoppingprice">$20.87</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation1.jpg" class="shoppingitemname"> Kent thruster men's fixie bike</span> <span class="shoppingprice">$95.70</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation9.jpg" class="shoppingitemname"> Master lock combo lock</span> <span class="shoppingprice">$3.49</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation14.jpg" class="shoppingitemname"> Total x-stream water waterbolt water weapon squirt gun</span> <span class="shoppingprice">$12.52</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation13.jpg" class="shoppingitemname"> Water warriors outlaw air pressure water blaster</span> <span class="shoppingprice">$6.67</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Recreation/recreation7.jpg" class="shoppingitemname"> Wilson super grip football</span> <span class="shoppingprice">$16.47</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Shaving
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Shaving/shaving3.jpg" class="shoppingitemname"> Bic sensitive shaver</span> <span class="shoppingprice">$2.83</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Shaving/shaving5.jpg" class="shoppingitemname"> Fusion moisturizer shaving gel</span> <span class="shoppingprice">$4.33</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Shaving/shaving2.jpg" class="shoppingitemname"> Gillette venus sensitive disposable razors, 3 count</span> <span class="shoppingprice">$7.67</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Shaving/shaving4.jpg" class="shoppingitemname"> Nair hair remover lotion softening baby oil, 9 oz</span> <span class="shoppingprice">$5.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Shaving/shaving1.jpg" class="shoppingitemname"> Phillips norelco shaver 2100</span> <span class="shoppingprice">$38.45</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Shaving/shaving6.jpg" class="shoppingitemname"> Wahl haircutting kit</span> <span class="shoppingprice">$13.07</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Skin care
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Skin%20Care/skincare1.jpg" class="shoppingitemname"> Cetaphil for dry, sensitive, skin moisturizing cream, 16 oz</span> <span class="shoppingprice">$10.68</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Skin%20Care/skincare2.jpg" class="shoppingitemname"> Fruit of the earth aloe vera gel, 12 oz</span> <span class="shoppingprice">$4.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Skin%20Care/skincare5.jpg" class="shoppingitemname"> Neutrogena acne treatment oil-free acne wash, 9.1 fl oz</span> <span class="shoppingprice">$7.12</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Skin%20Care/skincare3.jpg" class="shoppingitemname"> St. ives blemish control apricot scrub, 6 oz</span> <span class="shoppingprice">$3.89</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Skin%20Care/skincare4.jpg" class="shoppingitemname"> T.n. dickinson’s face and body witch hazel astringment, 16 fl oz</span> <span class="shoppingprice">$3.51</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Skin%20Care/skincare6.jpg" class="shoppingitemname"> Vaseline 100% pure petroleum jelly, 13oz</span> <span class="shoppingprice">$3.85</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Snacks
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks6.jpg" class="shoppingitemname"> Baked! lay’s original potato crisps</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks2.jpg" class="shoppingitemname"> Blow pops, 10.4oz</span> <span class="shoppingprice">$2.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks49.jpg" class="shoppingitemname"> Builder's peanut butter protein bar, 6pk</span> <span class="shoppingprice">$7.43</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks38.jpg" class="shoppingitemname"> Clif bar coconut chocolate chip energy bars, 6ct</span> <span class="shoppingprice">$6.60</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks5.jpg" class="shoppingitemname"> Cheetos cheese flavored snacks, 9oz</span> <span class="shoppingprice">$2.95</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks18.jpg" class="shoppingitemname"> Cheez-it baked snack crackers</span> <span class="shoppingprice">$4.82</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks50.jpg" class="shoppingitemname"> Crunchy peanut butter, 28oz</span> <span class="shoppingprice">$3.65</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks11.jpg" class="shoppingitemname"> Doritos cool ranch</span> <span class="shoppingprice">$3.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks10.jpg" class="shoppingitemname"> Doritos nacho cheese</span> <span class="shoppingprice">$3.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks33.jpg" class="shoppingitemname"> Fiber one 90 calorie cinnamon coffee cake, 6ct.</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks36.jpg" class="shoppingitemname"> Fiber one oats and chocolate chewy bars, 10ct</span> <span class="shoppingprice">$5.48</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks45.jpg" class="shoppingitemname"> Fruit gushers strawberry splash, 6 ct</span> <span class="shoppingprice">$2.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks44.jpg" class="shoppingitemname"> Fruit roll-ups strawberry and berry, 20ct</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks16.jpg" class="shoppingitemname"> Goldfish cheddar baked snack crackers, 30oz</span> <span class="shoppingprice">$8.23</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks51.jpg" class="shoppingitemname"> Great value grape jelly, 20oz</span> <span class="shoppingprice">$2.75</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks17.jpg" class="shoppingitemname"> Honey maid honey graham crackers</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks35.jpg" class="shoppingitemname"> Kellog’s special k strawberry pastry crisps, 10ct</span> <span class="shoppingprice">$3.06</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks9.jpg" class="shoppingitemname"> Lay’s barbecue flavored potato chips, 7.75oz</span> <span class="shoppingprice">$2.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks7.jpg" class="shoppingitemname"> Lay’s classic potato chips</span> <span class="shoppingprice">$3.17</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks32.jpg" class="shoppingitemname"> Lay’s creamy ranch dip</span> <span class="shoppingprice">$4.16</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks8.jpg" class="shoppingitemname"> Lay’s salt and vinegar flavored potato chips, 7.75oz</span> <span class="shoppingprice">$2.73</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks3.jpg" class="shoppingitemname"> Mini chocolate variety pack, 10.4oz</span> <span class="shoppingprice">$3.89</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks13.jpg" class="shoppingitemname"> Nabisco chips ahoy! chocolate chip cookies</span> <span class="shoppingprice">$2.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks12.jpg" class="shoppingitemname"> Nabisco oreo chocolate sandwich cookies</span> <span class="shoppingprice">$3.85</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks14.jpg" class="shoppingitemname"> Nabisco oreo double stuf chocolate sandwich cookies</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks15.jpg" class="shoppingitemname"> Nabisco ritz crackers</span> <span class="shoppingprice">$2.75</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks21.jpg" class="shoppingitemname"> Nabisco teddy grahams honey</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks20.jpg" class="shoppingitemname"> Nabisco triscuit crackers</span> <span class="shoppingprice">$2.75</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks19.jpg" class="shoppingitemname"> Nabisco wheat thins</span> <span class="shoppingprice">$4.27</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks42.jpg" class="shoppingitemname"> Nature valley crunchy oats ‘n honey granola bars</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks34.jpg" class="shoppingitemname"> Nature valley sweet and salty nut peanut and almond variety pack, 12ct.</span> <span class="shoppingprice">$5.48</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks26.jpg" class="shoppingitemname"> Nutella hazelnut spread</span> <span class="shoppingprice">$3.83</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks1.jpg" class="shoppingitemname"> Orbit sweet mint, 3pk</span> <span class="shoppingprice">$2.46</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks40.jpg" class="shoppingitemname"> Orville redenbacher’s ultimate butter microwave popcorn, 6ct</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks52.jpg" class="shoppingitemname"> Peach chobani yogurt, 5.3oz</span> <span class="shoppingprice">$1.10</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks24.jpg" class="shoppingitemname"> Planters cashew halves and pieces</span> <span class="shoppingprice">$7.08</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks25.jpg" class="shoppingitemname"> Planters mixed nuts</span> <span class="shoppingprice">$7.68</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks22.jpg" class="shoppingitemname"> Planters salted dry roasted peanuts</span> <span class="shoppingprice">$5.48</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks39.jpg" class="shoppingitemname"> Pop secret premium butter popcorn, 3ct</span> <span class="shoppingprice">$2.51</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks48.jpg" class="shoppingitemname"> Quaker caramel corn rice cakes</span> <span class="shoppingprice">$2.20</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks37.jpg" class="shoppingitemname"> Quaker chewy chocolate chip granola bars, 12ct</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks47.jpg" class="shoppingitemname"> Rold gold sticks pretzels</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks46.jpg" class="shoppingitemname"> Rold gold tiny twists pretzels</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks30.jpg" class="shoppingitemname"> Skippy creamy peanut butter</span> <span class="shoppingprice">$4.53</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks41.jpg" class="shoppingitemname"> Smartfood delight white cheddar popcorn</span> <span class="shoppingprice">$3.94</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks23.jpg" class="shoppingitemname"> Sun-maid natural california raisins</span> <span class="shoppingprice">$3.83</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks28.jpg" class="shoppingitemname"> Tostitos creamy spinach dip</span> <span class="shoppingprice">$3.83</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks29.jpg" class="shoppingitemname"> Tostitos medium chunky salsa</span> <span class="shoppingprice">$3.83</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks27.jpg" class="shoppingitemname"> Tostitos medium salsa con queso</span> <span class="shoppingprice">$3.83</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks31.jpg" class="shoppingitemname"> Tostitos mild thick and chunky salsa</span> <span class="shoppingprice">$3.83</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks4.jpg" class="shoppingitemname"> Tostitos restaurant style tortilla chips</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Snacks/snacks43.jpg" class="shoppingitemname"> Welch’s mixed fruit fat free fruit snacks, 22ct</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Supplements
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements13.jpg" class="shoppingitemname"> Centrum chewable multivitamin, 100ct</span> <span class="shoppingprice">$10.97</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements2.jpg" class="shoppingitemname"> Culturelle probiotics, 30ct</span> <span class="shoppingprice">$20.37</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements14.jpg" class="shoppingitemname"> Emergen-c tangerine packets, 30 packets</span> <span class="shoppingprice">$10.97</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements12.jpg" class="shoppingitemname"> Equate adult gummy multivitamins, 150ct</span> <span class="shoppingprice">$9.61</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements11.jpg" class="shoppingitemname"> Equate men's multivitamin, 100ct</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements1.jpg" class="shoppingitemname"> Equate soluble fiber, 125 servings</span> <span class="shoppingprice">$10.27</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements10.jpg" class="shoppingitemname"> Equate women's multivitamin, 100ct</span> <span class="shoppingprice">$4.38</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements5.jpg" class="shoppingitemname"> Metamucil fiber wafers, 24ct</span> <span class="shoppingprice">$8.22</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements7.jpg" class="shoppingitemname"> Nature made fish oil omega 3, 100ct</span> <span class="shoppingprice">$10.98</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements3.jpg" class="shoppingitemname"> Spring valley biotin, 120ct</span> <span class="shoppingprice">$5.48</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements4.jpg" class="shoppingitemname"> Spring valley gelatin, 100ct</span> <span class="shoppingprice">$3.28</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements6.jpg" class="shoppingitemname"> Spring valley gummy melatonin, 60ct</span> <span class="shoppingprice">$6.56</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements8.jpg" class="shoppingitemname"> Spring valley norwegian cod liver oil</span> <span class="shoppingprice">$8.18</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplements/supplements9.jpg" class="shoppingitemname"> Vitafusion women's gummy multivitamin, 150ct</span> <span class="shoppingprice">$11.97</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+<li> Supplies
+<ul>
+<li class="shoppingitem"> <span data-imgpath="example/Supplies/supplies6.jpg" class="shoppingitemname"> Crayola long barrel colored woodcase pencils, 24 count</span> <span class="shoppingprice">$7.02</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplies/supplies2.jpg" class="shoppingitemname"> Elmer's washable all purpose school glue sticks epie542</span> <span class="shoppingprice">$4.93</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplies/supplies8.jpg" class="shoppingitemname"> Huge pillow</span> <span class="shoppingprice">$5.24</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplies/supplies9.jpg" class="shoppingitemname"> Mainstays beveled door mirror</span> <span class="shoppingprice">$16.36</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplies/supplies5.jpg" class="shoppingitemname"> Paper mate mechanical pencil starter kit, 0.7mm lead</span> <span class="shoppingprice">$5.96</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplies/supplies4.jpg" class="shoppingitemname"> Pentel g2 fine point pencil lead</span> <span class="shoppingprice">$7.39</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplies/supplies7.jpg" class="shoppingitemname"> Scotch magic tape box, .75" x 800", 6-pack</span> <span class="shoppingprice">$10.97</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplies/supplies1.jpg" class="shoppingitemname"> Thumb tacks, vinyl coated-assorted colors, 40pk</span> <span class="shoppingprice">$4.30</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+<li class="shoppingitem"> <span data-imgpath="example/Supplies/supplies3.jpg" class="shoppingitemname"> Usa gold premium no.2 pre-sharpened pencils, 10pk</span> <span class="shoppingprice">$4.35</span> <input class="shoppingquantity" type="text" placeholder="Qty" /></li>
+</ul>
+</li>
+</ul>
+</div>
+		<!-- End shopping items -->
+		<input type="button" name="previous" class="previous action-button afterstartpage" value="Previous" />
+		<input type="button" name="next" class="next action-button itemspage" value="Next" />
+		
+		
+		<div id="item_preview" style="display:none;z-index:100"><img id="preview_img"/></div>
+		<div id="suggestion_box" style="z-index:100">
+			<div class="message primary" style="text-align:left;padding:15px 25px">
+				<p><span id="needsmth">Need something not listed?</span> <span id="suggestion_msg" style="display:none"><i> Okay! We'll get back to you! </i></span></p>
+					<br>
+					<input type="text" name="suggestion_item" id="suggestion_item" placeholder="Item" style="height:35px;width:25%;margin-bottom:3px;padding:5px 5px">
+					<input type="text" name="suggestion_price" id="suggestion_price" placeholder="Price" style="height:35px;width:15%;margin-bottom:3px;padding:5px 5px">
+					<input type="text" name="suggestion_email" id="suggestion_email" placeholder="Email" style="height:35px;width:35%;margin-bottom:3px;padding:5px 5px">
+					<input type="button" class="suggestion-button" value="Tell us!" style="width:15%;height:35px;float:right;margin-bottom:3px">
+					    <div class="alert-close">×</div>
+				</div>
+
+		</div>
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Where are you?</h2>
+		<h3 class="fs-subtitle">We need to make sure we're delivering to the right place.</h3>
+		<input type="text" id="dormname" name="dormname" placeholder="Dorm Name (e.g. Fahey)" />
+		<input type="text" id="dormnumber" name="dormnumber" placeholder="Dorm Number (e.g. 123)" />
+		<input type="button" name="previous" class="previous action-button" value="Previous" />
+		<input type="button" name="next" class="next action-button confbutton locationpage" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Confirmation</h2>
+		<h3 class="fs-subtitle">Please review the information below and make sure it is correct</h3>
+		<div> Delivery to: <span id="conf_dormname"> </span> <span id="conf_dormnumber"> </span> </div>
+		<div> Latest Delivery time: <span id="conf_deliverytime"> </span> </span> </div>
+		<br>
+		<table id="costtable" border="1" style="width:100%">
+		</table>
+		<br>
+		<div> Subtotal: <span class="runningtotal"> $0.00 </span> </div>
+		<div id="deliveryfeemsg"> + $5.00 delivery fee <br> <span style="color:red">(order $25 or more and we won't charge!)</span></div>
+		<div id="bulkmsg"> <span style="color:green"> (+10% discount) </span> </div>
+		<br>
+		<div> Total: <span class="actualtotal"> $0.00 </span> </div>
+		<br>
+		<div> <input placeholder="Have a referral code?" style="width:60%" id="referralcodebox" type="text"/> 
+			<input type="button" id="referralbutton" value="Check" style="width:25%"> </input>
+			</div>
+			
+		<input type="button" name="previous" class="previous action-button" value="Previous" />
+		<input type="button" name="next" class="next action-button" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Checkout</h2>
+		<h3 class="fs-subtitle">You're one click away from items coming to your door.</h3>
+		<!-- PayPal Logo --><table style="width:200px;margin: 10px auto" border="0" cellpadding="10" cellspacing="0" align="center"><tr><td align="center"></td></tr><tr><td align="center"><a id="paypalbutton" href="#"><img src="https://www.paypalobjects.com/webstatic/mktg/logo-center/Security_Banner_234x60_2a.gif" border="0" alt="PayPal Logo"></a></td></tr></table><!-- PayPal Logo -->
+		<h5 style="margin-top:-10px;margin-bottom:-10px"> -or- </h5>
+		<div class="paymentInfo">
+			<p class="paymentInfoTotal">
+				Your card will be charged: <span class="paymentInfoPrice actualtotal">$0.00</span>
+			</p>
+		</div>
+		<!-- Credit Card Div -->
+		<input id="firstname" type="text" placeholder="First Name" style="text-align:left;width:30%">
+		<input id="lastname" type="text" placeholder="Last Name" style="text-align:left;width:30%">
+
+
+		<div class="form-row cardInfo__cc-num">
+			 <label for="cc-num"><abbr title="required">*</abbr><span>Card Number</span></label>
+			 <div class="cc-num__wrap">
+				 <!-- using type="tel" because type="number" doesn’t pass HTML5 form validation with jQuery.payment formatting -->
+				 <input id="cc-num" type="tel" class="paymentInput cc-num" placeholder="•••• •••• •••• ••••" autocompletetype="cc-number" required="required">
+				 <span class="card" aria-hidden="true"></span>
+			 </div>
+	 </div>
+		  
+	 <div class="form-row cardInfo__cc-exp">
+		 <label for="cc-exp"><abbr title="required">*</abbr><span>Expires</span></label>
+		 <input id="cc-exp" type="tel" class="paymentInput cc-exp" placeholder="MM / YY" autocompletetype="cc-exp" required="required">
+	 </div>
+		  
+	 <div class="form-row cardInfo__cc-cvc">
+		 <label for="cc-cvc"><abbr title="required">*</abbr><span>CVC</span></label>
+		 <input id="cc-cvc" type="tel" class="paymentInput cc-cvc" placeholder="CVC" autocompletetype="cc-cvc" required="required">
+	 </div>
+		<!-- Credit Card Div -->
+			<input type="button" name="previous" class="previous action-button confbutton" value="Previous" />
+			<input id="checkoutbutton" type="button"  name="submit" class="submit action-button" value="Checkout!" />
+			<div style="text-size:5px;color:grey">Only click Checkout once to avoid duplicate charges.</div>
+	</fieldset>
+</form>
+
+
+	</body>
+</html>

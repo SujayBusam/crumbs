@@ -1,0 +1,26 @@
+hair1;Aussie Moist Shampoo 13.5 fl oz;2.97
+hair2;Suave Professionals Almond and Shea Butter Shampoo, 28oz;2.88
+hair3;Head and Shoulders Classic Clean Dandruff Shampoo, 33.9 fl oz;9.37
+hair4;Pantene Pro-V Truly Natural Hair Co-Wash Cleansing Conditioner, 21.1 fl oz;4.97
+hair5;Head and Shoulders Classic Clean 2-1 Shampoo and Conditioner, 14.2 fl oz;4.97
+hair6;Garnier Fruits Color Shield Shampoo, 25.4 oz;4.97
+hair7;Garnier Daily Care 2-1 Shampoo and Conditioner, 25.4 fl oz;4.97
+hair8;Style by Revlon Dryer;9.84
+hair9;Remington Anti-Static Digital Ceramic 1” Flat Iron;16.72
+hair10;Straight by Revlon Ceramic Straightner 1”;9.84
+hair11;Conair Mid-Size Dryer;12.96
+hair12;Conair Infiniti You Curl;21.99
+hair13;Revlon Perfect Heat 1” Curling Iron;9.08
+hair14;Suave Professionals Captivating Curls Whipped Cream Mouse, 7 oz;2.88
+hair15;Dove Strength+Care Nourishing Amplifier Mouse, 7 oz;3.94
+hair16;Garnier Volumnizing Anti-Humidity Hairspray, 8.25 oz;2.96
+hair17;Cantu for Natural Hair Moisturizing Curl Activator Cream, 12 oz;5.97
+hair18;Scunci No Damage Hair Ties, Black, 15 count;2.17
+hair19;Conair Velvet Touch Round Hairbrush;2.64
+hair20;Goody Ouchless Comfort Fit Headbands, 6 count;2.96
+hair21;Scunci Hair Clips, 3 count;2.46
+hair22;Conair Sectioning and Styling Combs;2.66
+hair23;Girls’ Woven Headbands, 6 count;3.00
+hair24;Goody Neon Lights Gentle Scrunchies, 8 count;4.97
+hair25;Suave Professionals Almond +Shea Butter Conditioner, 28 oz;2.88
+hair26;Aussie Moist Conditioner, 29.2 fl oz;4.97

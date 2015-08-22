@@ -1,0 +1,22 @@
+breakfastandcereal1;Cheerios;3.98
+breakfastandcereal2;Raisin Bran;3.68
+breakfastandcereal3;Fiber One Original;3.98
+breakfastandcereal4;Quaker Life Multigrain Original;3.00
+breakfastandcereal5;Special K;3.68
+breakfastandcereal6;Froot Loops;3.98
+breakfastandcereal7;Apple Jacks;3.44
+breakfastandcereal8;Wheaties;3.68
+breakfastandcereal9;Cinammon Toast Crunch;3.98
+breakfastandcereal10;Cocoa Krispies Cereal;2.98
+breakfastandcereal11;Rice Krispies Cereal;2.98
+breakfastandcereal12;Special K Protein Cereal;2.98
+breakfastandcereal13;Lucky Charms Cereal;3.98
+breakfastandcereal14;Cap'n Crunch;3.00
+breakfastandcereal15;Honey Nut Cheerios;2.98
+breakfastandcereal16;Frosted Flakes;2.98
+breakfastandcereal17;Strawberry Pop Tarts;3.50
+breakfastandcereal18;Strawberry Streusel Bars, 12ct;5.68
+breakfastandcereal19;Blueberry Streusel Bars, 5ct;2.98
+breakfastandcereal20;Apple Cinnamon Nutrigrain, 8ct;2.78
+breakfastandcereal21;Quaker (Variety) Instant Oatmeal;2.50
+

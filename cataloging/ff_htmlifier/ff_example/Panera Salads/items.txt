@@ -1,0 +1,15 @@
+panerasalads1;Strawberry Poppyseed & Chicken Salad;11.00
+panerasalads2;Mediterranean Chicken & Quinoa Salad;11.00
+panerasalads3;Power Kale Caesar Salad with Chicken;11.00
+panerasalads4;Classic Salad;7.67
+panerasalads5;Classic with Chicken Salad;9.84
+panerasalads6;Asian Sesame Chicken Salad;9.84
+panerasalads7;Fuji Apple Chicken Salad;10.61
+panerasalads8;BBQ Chicken Salad;10.61
+panerasalads9;Thai Chicken Salad;11.00
+panerasalads10;Chicken Caesar Salad;9.84
+panerasalads11;Caesar Salad;7.67
+panerasalads12;Greek Salad;7.67
+panerasalads13;Greek with Chicken Salad;9.84
+panerasalads14;Chicken Cobb;10.61
+panerasalads15;Chicken Cobb with Avocado;11.00

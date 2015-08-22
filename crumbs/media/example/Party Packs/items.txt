@@ -1,0 +1,21 @@
+partypacks1;Great Value Heavy Duty 9" Paper Plates, 140ct;5.94
+partypacks2:Great Value Soak Proof Foam Plates 60ct;2.17
+partypacks3;Great Value White Forks 100ct;1.97
+partypacks4;Great Value White Spoons 100ct;1.97
+partypacks5;Great Value 18 oz Grip Plastic Cups 50 ct;3.47
+partypacks6;Lay's Classic Potato Chips 10.5 oz;2.88
+partypacks7;Doritos Nacho Cheese 15.5 oz;3.99
+partypacks8;Lay's Barbecue Flavored Potato Chips, 15.25 oz;3.99
+partypacks9;Nabisco Chips Ahoy! Chewy Chocolate Chip Cookies;1.98
+partypacks10;Tostitos Restaurant Style Tortilla Chips;3.98
+partypacks11;Tostitos Medium Salsa Con Queso 23 oz;4.48
+partypacks12;Tostitos Creamy Spinach Dip 23 oz;4.11
+partypacks13;Tostitos Medium Chunky Salsa 15.5 oz;2.50
+partypacks14;Hawaiian Punch, 1 Gal 2.00
+partypacks15;Sprite 2 L;1.48
+partypacks16;Coca-Cola 2L;1.48
+partypacks17;Diet Coke 2L;1.48
+partypacks18;Coca-Cola Zero 2L;1.48
+partypacks19;Nestle Pure Life Purified Water, 12pk;2.48
+
+

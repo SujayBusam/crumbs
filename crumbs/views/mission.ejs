@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+	<head>
+        <title>The Crumbs Mission</title>
+				<meta charset="utf-8">
+
+				<!-- jQuery -->
+				<script src="http://thecodeplayer.com/uploads/js/jquery-1.9.1.min.js" type="text/javascript"></script>
+				<!-- jQuery easing plugin -->
+			  <script src="http://thecodeplayer.com/uploads/js/jquery.easing.min.js" type="text/javascript"></script>
+				<link rel="stylesheet" type="text/css" href="crumbsmission.css">	
+				<link rel="stylesheet" type="text/css" href="bar.css">
+				<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-62507743-1', 'auto');
+	ga(‘set’, ‘&uid’, {{USER_ID}}); // Set the user ID using signed-in user_id.
+	  ga('send', 'pageview');
+				</script>
+	</head>
+	<body>
+		<script>
+
+function prepareList() {
+  $('#expList').find('li:has(ul)')
+  	.click( function(event) {
+  		if (this == event.target) {
+  			$(this).toggleClass('expanded');
+  			$(this).children('ul').toggle('medium');
+  		}
+  		return false;
+  	})
+  	.addClass('collapsed')
+  	.children('ul').hide();
+  };
+ 
+
+$(document).ready(function() {
+//jQuery time
+var current_fs, next_fs, previous_fs; //fieldsets
+var left, opacity, scale; //fieldset properties which we will animate
+var animating; //flag to prevent quick multi-click glitches
+
+prepareList();
+
+orders = <%- JSON.stringify(orders) %>;
+raised = 0.0;
+
+for (var i = 0; i < orders.length; i++) {
+	raised = raised + orders[i]['cost'];
+}
+
+//raised = parseFloat($(".raised").text());
+goal = parseFloat($(".goal").text());
+raised_pct = raised/goal * 100;
+$(".progress-bar").css("width", raised_pct + "%");
+$(".raised").html("Raised: $" + (raised + 1105).toFixed(2))
+$(".goal").text("Goal: $" + goal.toFixed(2))
+
+
+$(".shoppingitemname").hover(function(e){
+	$("#preview_img").attr('src', $(this).data("imgpath"));
+	$("#preview_img").css('height', "150px");
+	$("#preview_img").css('width', "150px");
+	$("#item_preview").show();
+	console.log("hello");
+}, function() {$("#item_preview").hide()});
+	
+
+$(".next").click(function(){
+	if(animating) return false;
+	animating = true;
+	
+	current_fs = $(this).parent();
+	next_fs = $(this).parent().next();
+	
+	//activate next step on progressbar using the index of next_fs
+	$("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+	
+	//show the next fieldset
+	next_fs.show(); 
+	//hide the current fieldset with style
+	current_fs.animate({opacity: 0}, {
+		step: function(now, mx) {
+			//as the opacity of current_fs reduces to 0 - stored in "now"
+			//1. scale current_fs down to 80%
+			scale = 1 - (1 - now) * 0.2;
+			//2. bring next_fs from the right(50%)
+			left = (now * 50)+"%";
+			//3. increase opacity of next_fs to 1 as it moves in
+			opacity = 1 - now;
+			current_fs.css({'transform': 'scale('+scale+')'});
+			next_fs.css({'left': left, 'opacity': opacity});
+		}, 
+		duration: 800, 
+		complete: function(){
+			current_fs.hide();
+			animating = false;
+		}, 
+		//this comes from the custom easing plugin
+		easing: 'easeInOutBack'
+	});
+});
+
+$(".previous").click(function(){
+	if(animating) return false;
+	animating = true;
+	
+	current_fs = $(this).parent();
+	previous_fs = $(this).parent().prev();
+	
+	//de-activate current step on progressbar
+	$("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
+	
+	//show the previous fieldset
+	previous_fs.show(); 
+	//hide the current fieldset with style
+	current_fs.animate({opacity: 0}, {
+		step: function(now, mx) {
+			//as the opacity of current_fs reduces to 0 - stored in "now"
+			//1. scale previous_fs from 80% to 100%
+			scale = 0.8 + (1 - now) * 0.2;
+			//2. take current_fs to the right(50%) - from 0%
+			left = ((1-now) * 50)+"%";
+			//3. increase opacity of previous_fs to 1 as it moves in
+			opacity = 1 - now;
+			current_fs.css({'left': left});
+			previous_fs.css({'transform': 'scale('+scale+')', 'opacity': opacity});
+		}, 
+		duration: 800, 
+		complete: function(){
+			current_fs.hide();
+			animating = false;
+		}, 
+		//this comes from the custom easing plugin
+		easing: 'easeInOutBack'
+	});
+});
+
+$(".submit").click(function(){
+	return false;
+});
+});
+
+
+	</script>
+	
+<!-- multistep form -->
+<form id="msform">
+	<!-- progressbar -->
+	<ul id="progressbar">
+		<li class="active">Progress Report</li>
+		<li>Mission</li>
+		<li>The Team</li>
+		<li>Thank You</li>
+	</ul>
+	<!-- fieldsets -->
+	<fieldset>
+		<h2 class="fs-title" style="color:black"><span id="logo">The Crumbs Mission</span></h2>
+		<h3 class="fs-subtitle" style="font-size:1.1em">The Crumbs is donating <span style="color:green"><b>100% of profits</b></span> to the Upper Valley Haven.</h3>
+
+		<p> Here's a progress report: </p>
+
+		<div class="progress-bg">
+			<div class="progress-bar">
+			</div>
+			<div class="local-bar">
+				<p style="color:white;margin-top:5px;font-size:10px"> Local Business Advertising</p>
+			</div>
+
+																        	
+		</div>
+		<div width="100%">
+			<div style="float:left"> <h3 class="raised"> 670 </h3> </div>
+			<div style="float:right"> <h3 class="goal"> 5000 </h3> </div>
+		</div>
+		<br>
+		<br>
+		<p class="fs-subtitle"> Note: This is gross revenue, and <b><i>not</i></b> profit. Subtracted from this amount will be gas and item expenditures. </p>
+
+		<input type="button" name="next" class="next action-button" value="Learn About Our Mission" style="width:50%" />
+		<br>
+
+		<br>
+		<p> If you prefer to donate directly: </p>
+
+		<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BBW5KXHGBLGU2">
+		<img src="donatebutton.gif">
+		
+		</a>
+		
+	
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title" style="font-size:1.5em;color:black">Combatting poverty is tough.<br> At the end of the day, it's only crumbs.</h2>
+		<h3 class="fs-subtitle" style="font-size:1.1em">But we hope <i>the crumbs will matter.</i></h3>
+
+
+		<img style="text-align:center;width:50%" src="havenentrance.png">
+
+		<br>
+
+		<p style="text-align:left;text-indent:50px;margin-top:5px" class="fs-subtitle"> Volunteering at the Haven for nearly four years has been one of the most eye-opening experiences at Dartmouth. From seeing residents leave the warming shelter on Thanksgiving day, to cooking for and having dinner with a nineteen year-old, poverty can be heartwrenching.</p>
+
+		<p style="text-align:left;text-indent:50px;margin-top:-10px" class="fs-subtitle"> Ultimately, a single donation at the end of the term is but mere crumbs in the fight against poverty. But together, we can raise awareness and make a difference. </p>
+
+		<p class="fs-subtitle" style="text-align:right"> Hongyu Chen '15</p>
+		
+		<input type="button" name="previous" class="previous action-button afterstartpage" value="Previous" />
+		<input type="button" name="next" class="next action-button" value="Next"/>
+	
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title" style="font-size:1.5em;color:black">The Crumbs Team.</h2>
+		<h3 class="fs-subtitle" style="font-size:1.1em">A <span style="font-size:0.8em">small group</span> with <span style="font-size:1.3em">big dreams</span>.</h3>
+
+
+
+		<img style="width:50%;text-align:center" src="teamphoto.jpg">
+
+		<br>
+		<br>
+
+		<p> Hello. It's Hongyu Chen, Luke Naman, Kevin Nguyen, and Emmanuel Blankson. </p>
+
+
+
+		
+		<p>Together, we are <span id="logo" style="font-size:1em">The Crumbs Team</span> !</p>
+
+		
+		<p class="fs-subtitle">We're all friends from the same freshman floor. On a road trip back from spring break, we came up with the idea to give back to the Dartmouth community. Since then, we welcomed Janice Fidalgo '18 to the team.</p>
+
+
+		
+		<input type="button" name="previous" class="previous action-button afterstartpage" value="Previous" />
+		<input type="button" name="next" class="next action-button" value="Next"/>
+	
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title" style="font-size:1.5em;color:black">What can you do?</h2>
+		<h3 class="fs-subtitle" style="font-size:1.1em">Just by ordering on <a href="http://thecrumbs.org">The Crumbs</a>, you are making a difference.</h3>
+
+		<p style="color:red"> As per the progress bar below, your friends already have. <a href="http://thecrumbs.org">Get on it!</a></p>
+		<div class="progress-bg">
+			<div class="progress-bar">
+				<h3 class="raised"> 670 </h3>
+			</div>
+																        	
+			<h3 class="goal"> 5000 </h3>
+		</div>
+
+		<br>
+
+
+		<input type="button" name="previous" class="previous action-button afterstartpage" value="Previous" />
+	
+	</fieldset>
+</form>	
+	</body>
+</html>

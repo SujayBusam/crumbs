@@ -1,0 +1,6 @@
+mcdonaldsfries1;Fries (small);1.65
+mcdonaldsfries2;Fries (med);2.04
+mcdonaldsfries3;Fries (large);2.29
+mcdonaldsfries4;Nuggets 10pc;6.40
+mcdonaldsfries5;Nuggets 20pc;6.40
+mcdonaldsfries6;Nuggets 40pc;11.51

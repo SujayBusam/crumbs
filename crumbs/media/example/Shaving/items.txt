@@ -1,0 +1,6 @@
+shaving1;Phillips Norelco Shaver 2100;34.95
+shaving2;Gillette Venus Sensitive Disposable Razors, 3 count;6.97
+shaving3;Bic Sensitive Shaver;2.57
+shaving4;Nair Hair Remover Lotion Softening Baby Oil, 9 oz; 4.94
+shaving5;Fusion Moisturizer Shaving Gel;3.94
+shaving6;WAHL Haircutting Kit;11.88

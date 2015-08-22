@@ -1,0 +1,28 @@
+freshproduce1;Strawberries, 1lb;3.50
+freshproduce2;Blueberries, 6oz;3.50
+freshproduce3;Gala Apples, 1lb;2.29
+freshproduce4;Red Seedless Grapes;3.00
+freshproduce5;Lettuce;1.60
+freshproduce6;Mango;1.25
+freshproduce7;Seedless Cucumber;1.75
+freshproduce8;Potatoes 8lb;4.50
+freshproduce9;Crisp Celery Bunch;1.88
+freshproduce10;Sweet Corn;0.50
+freshproduce11;Onion, 1lb;1.50
+freshproduce12;Portabella Mushrooms, 12oz;3.80
+freshproduce13;Avocado;1.25
+freshproduce14;Avocado, Organic;2.00
+freshproduce15;Tomato;0.80
+freshproduce16;Tomato, Organic;1.20
+freshproduce17;Carrots;2.25
+freshproduce18;Naked Juice 15.2oz;2.75
+freshproduce19;Orange, 1lb;1.00
+freshproduce20;Banana, 1lb;1.00
+freshproduce21;Coconut;1.00
+freshproduce22;Kiwi;0.50
+freshproduce23;Lemons, 1lb;1.55
+freshproduce24;Pears, 1lb;2.22
+freshproduce25;Peaches, 1lb;3.33
+freshproduce26;Baguette;2.00
+freshproduce27;Wheat Bread;2.00
+freshproduce28;Wonderbread (white);3.00

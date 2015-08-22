@@ -1,0 +1,6 @@
+fiveguysfries1;Five Guys Style Fries (small);3.57
+fiveguysfries2;Five Guys Style Fries (regular);4.85
+fiveguysfries3;Five Guys Style Fries (large);6.39
+fiveguysfries4;Cajun Style (small);3.57
+fiveguysfries5;Cajun Style (regular);4.85
+fiveguysfries6;Cajun Style (large);6.39

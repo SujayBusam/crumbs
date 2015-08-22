@@ -1,0 +1,12 @@
+electronics1;JVC HAV570 DJ Headphones;10.51
+electronics2;Beats On-ear Headphones;200
+electronics3;HDMI Cable;6.80
+electronics4;Hamilton Beach Programmable Electric Kettle;39.92
+electronics5;Onn 7' Network Cable;3.99
+electronics6;Belkin Mini Displayport to HDMI Adapter;14.41
+electronics7;Apple Lightning to USB Cable;17.49
+electronics8;GE 6-outlet Surge Protector;6.72
+electronics9;TI 30-X Scientific Calculator;12.97
+electronics10;Casio Graphing Calculator;46.87
+electronics11;Energizer AAA, 8 pack;4.30
+electronics12;Energizer AA, 8 pack;4.30

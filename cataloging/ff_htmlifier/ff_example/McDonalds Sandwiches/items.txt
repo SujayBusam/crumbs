@@ -1,0 +1,21 @@
+mcdonaldssandwiches1;Big Mac;5.11
+mcdonaldssandwiches2;Quarter Pounder with Cheese;4.85
+mcdonaldssandwiches3;Sirloin Burger;6.53
+mcdonaldssandwiches4;Bacon and Cheese Sirloin Burger;6.78
+mcdonaldssandwiches5;Lettuce and Tomato Sirloin Burger;6.40
+mcdonaldssandwiches6;Bacon Clubhouse Burger;5.75
+mcdonaldssandwiches7;Double Quarter Pounder with Cheese;6.13
+mcdonaldssandwiches8;Hamburger;1.28
+mcdonaldssandwiches9;Cheeseburger;1.28
+mcdonaldssandwiches10;BBQ Ranch Burger;1.28
+mcdonaldssandwiches11;Double Cheeseburger;2.04
+mcdonaldssandwiches12;McDouble;1.78
+mcdonaldssandwiches14;Bacon McDouble;2.56
+mcdonaldssandwiches15;Artisan Grilled Chicken;5.36
+mcdonaldssandwiches16;Premium Crispy Chicken Deluxe;5.75
+mcdonaldssandwiches17;Premium Crispy Chicken Bacon Clubhouse;5.75
+mcdonaldssandwiches18;Premium Grilled Chicken Bacon Clubhouse;5.75
+mcdonaldssandwiches19;McChicken;1.28
+mcdonaldssandwiches20;Filet-O-Fish;4.85
+mcdonaldssandwiches21;McRib;5.75
+

@@ -1,0 +1,28 @@
+beverages1;Ocean Spray Cranberry Juice;4.98
+beverages2;Hawaiian Punch, 1 Gal;1.98
+beverages3;Welch’s Bottled Grape Juice;4.98
+beverages4;V8 Vegetable Juice;3.98
+beverages5;Mott’s Original Apple Juice;2.48
+beverages6;Capri Sun Pacific Cooler Mixed Fruit Juice Drink Pouches, 10ct;1.98
+beverages7;Sprite 2 L;1.48
+beverages8;Coca-Cola 2L;1.48
+beverages9;Diet Coke 2L;1.48
+beverages10;Coca-Cola Zero 2L;1.48
+beverages11;Lipton Tea Bags, 100ct;4.13
+beverages12;Arnold Palmer Half and Half Lite Iced Tea/Lemonade;2.78
+beverages13;Celestial Seasonings Sleepytime Herbal Tea, 20ct;2.48
+beverages14;Folgers Medium Classic Roast Ground Coffee;9.68
+beverages15;Starbucks Frappuccino Mocha Coffe Drink, 4pk;10.42
+beverages16;Nestle Pure Life Purified Water, 8pk;2.48
+beverages17;Gatorade G Frost Glacier Freeze, 8pk;5.98
+beverages18;Gatorade G Orange, 8pk;5.98
+beverages19;Gatorade G Lemon-Lime, 8pk;5.98
+beverages20;5-Hour Energy Berry, 10pk;17.98
+beverages21;Red Bull Energy Drink, 4ct;5.98
+beverages23;Clear Polar Seltzer Water 1L;1.20
+beverages24;Nestle Waters Bottled Spring Water, 0.5 Liter, 24 Count;9.95
+beverages25;Schweppes 12pk Ginger Ale;4.00
+beverages26;Canada Dry 2L Ginger Ale;1.48
+beverages27;Organic Whole Milk, half gallon;3.00
+beverages28;Organic Low Fat Milk, half gallon;3.00
+beverages29;Organic Fat Free Milk, half gallon;3.00

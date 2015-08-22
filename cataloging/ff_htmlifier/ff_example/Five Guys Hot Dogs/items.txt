@@ -1,0 +1,4 @@
+fiveguyshotdogs1;Kosher Style Hot Dog;5.24
+fiveguyshotdogs2;Cheese Dog;6.13
+fiveguyshotdogs3;Bacon Dog;6.52
+fiveguyshotdogs4;Bacon Cheese Dog;7.41

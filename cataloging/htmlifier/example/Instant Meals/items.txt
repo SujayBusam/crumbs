@@ -1,0 +1,5 @@
+instantmeals1;Kraft Easy Mac, 4ct;3.75
+instantmeals2;Chef Boyardee, Teriyaki Beef Flavor;3.62
+instantmeals3;Campbell's Chicken Noodle Soup;1.98
+instantmeals4;Cup of noodles, Beef, 12pk;4.00
+instantmeals5;Cup of noodles, Chicken, 12pk;4.00

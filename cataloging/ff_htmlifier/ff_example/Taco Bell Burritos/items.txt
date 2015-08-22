@@ -1,0 +1,12 @@
+tacobellburritos1;Bean Burrito;1.65
+tacobellburritos2;Beefy 5-Layer Burrito;2.04
+tacobellburritos3;Chicken Burrito;2.16
+tacobellburritos4;Chili Cheese Burrito;2.16
+tacobellburritos5;Cheese Potato Burrito;3.06
+tacobellburritos6;Combo Burrito;3.06
+tacobellburritos7;Burrito Supreme;3.83
+tacobellburritos8;7-Layer Burrito;3.19
+tacobellburritos9;Black Bean Burrito;2.29
+tacobellburritos10;XXL Grilled Stuft Burrito (Beef);5.11
+tacobellburritos11;XXL Grilled Stuft Burrito (Chicken);6.39
+tacobellburritos12;XXL Grilled Stuft Burrito (Steak);6.64

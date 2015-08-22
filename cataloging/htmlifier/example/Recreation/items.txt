@@ -1,0 +1,15 @@
+recreation1;Kent Thruster Men's Fixie Bike;87.00
+recreation2;26" Huffy Nel Lusso Woman's Crusier Bike;128.57
+recreation3;Bell Black Helmet;24.97
+recreation4;Gold's Gym Exercise Mat;18.97
+recreation5;Gold's Gym 18" Foam Roller;14.77
+recreation6;Frisbee, 1ct;0.97
+recreation7;Wilson Super Grip Football;14.97
+recreation8;Bell Cable Lock;4.96
+recreation9;Master Lock Combo Lock;3.17
+recreation10;Bicycle Playing Card Deck (2-pack);3.97
+recreation11;Cannonball water balloons,50;4.71
+recreation12;Colored Water Balloons,1200;16.89
+recreation13;Water Warriors Outlaw Air Pressure Water Blaster;6.06
+recreation14;Total X-Stream Water Waterbolt Water Weapon Squirt Gun;11.38
+

@@ -1,0 +1,8 @@
+fiveguysburgers1;Hamburger;7.92
+fiveguysburgers2;Cheeseburger;8.82
+fiveguysburgers3;Bacon Burger;9.20
+fiveguysburgers4;Bacon Cheeseburger;10.10
+fiveguysburgers5;Little Hamburger;5.62
+fiveguysburgers6;Little Cheeseburger;6.52
+fiveguysburgers7;Little Bacon Burger;6.90
+fiveguysburgers8;Little Bacon Cheeseburger;7.80

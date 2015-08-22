@@ -1,0 +1,52 @@
+snacks1;Orbit Sweet Mint, 3pk;2.24
+snacks2;Blow Pops, 10.4oz;1.97
+snacks3;Mini Chocolate Variety Pack, 10.4oz;3.54
+snacks4;Tostitos Restaurant Style Tortilla Chips;3.98
+snacks5;Cheetos Cheese Flavored Snacks, 9oz;2.68
+snacks6;Baked! Lay’s Original Potato Crisps;2.98
+snacks7;Lay’s Classic Potato Chips;2.88
+snacks8;Lay’s Salt and Vinegar Flavored Potato Chips, 7.75oz;2.48
+snacks9;Lay’s Barbecue Flavored Potato Chips, 7.75oz;2.48
+snacks10;Doritos Nacho Cheese;2.88
+snacks11;Doritos Cool Ranch;2.88
+snacks12;Nabisco Oreo Chocolate Sandwich Cookies;3.50
+snacks13;Nabisco Chips Ahoy! Chocolate Chip Cookies;1.98
+snacks14;Nabisco Oreo Double Stuf Chocolate Sandwich Cookies;2.98
+snacks15;Nabisco Ritz Crackers;2.50
+snacks16;Goldfish Cheddar Baked Snack Crackers, 30oz;7.48
+snacks17;Honey Maid Honey Graham Crackers;2.98
+snacks18;Cheez-It Baked Snack Crackers;4.38
+snacks19;Nabisco Wheat Thins;3.88
+snacks20;Nabisco Triscuit Crackers;2.50
+snacks21;Nabisco Teddy Grahams Honey;2.98
+snacks22;Planters Salted Dry Roasted Peanuts;4.98
+snacks23;Sun-Maid Natural California Raisins;3.48
+snacks24;Planters Cashew Halves and Pieces;6.44
+snacks25;Planters Mixed Nuts;6.98
+snacks26;Nutella Hazelnut Spread;3.48
+snacks27;Tostitos Medium Salsa Con Queso;3.48
+snacks28;Tostitos Creamy Spinach Dip;3.48
+snacks29;Tostitos Medium Chunky Salsa;3.48
+snacks30;Skippy Creamy Peanut Butter;4.12
+snacks31;Tostitos Mild Thick and Chunky Salsa;3.48
+snacks32;Lay’s Creamy Ranch Dip;3.78
+snacks33;Fiber One 90 Calorie Cinnamon Coffee Cake, 6ct.;2.98
+snacks34;Nature Valley Sweet and Salty Nut Peanut and Almond Variety Pack, 12ct.;4.98
+snacks35;Kellog’s Special K Strawberry Pastry Crisps, 10ct;2.78
+snacks36;Fiber One Oats and Chocolate Chewy Bars, 10ct;4.98
+snacks37;Quaker Chewy Chocolate Chip Granola Bars, 12ct;2.98
+snacks38;CLIF Bar Coconut Chocolate Chip Energy Bars, 6ct;6.00
+snacks39;Pop Secret Premium Butter Popcorn, 3ct;2.28
+snacks40;Orville Redenbacher’s Ultimate Butter Microwave Popcorn, 6ct;2.98
+snacks41;Smartfood Delight White Cheddar Popcorn;3.58
+snacks42;Nature Valley Crunchy Oats ‘n Honey Granola Bars;2.98
+snacks43;Welch’s Mixed Fruit Fat Free Fruit Snacks, 22ct;3.98
+snacks44;Fruit Roll-Ups Strawberry and Berry, 20ct;3.98
+snacks45;Fruit Gushers Strawberry Splash, 6 ct;2.00
+snacks46;Rold Gold Tiny Twists Pretzels;2.98
+snacks47;Rold Gold Sticks Pretzels;2.98
+snacks48;Quaker Caramel Corn Rice Cakes;2.00
+snacks49;Builder's Peanut Butter Protein Bar, 6pk;6.75
+snacks50;Crunchy Peanut Butter, 28oz;3.32
+snacks51;Great Value Grape Jelly, 20oz;2.50
+snacks52;Peach Chobani Yogurt, 5.3oz;1.00

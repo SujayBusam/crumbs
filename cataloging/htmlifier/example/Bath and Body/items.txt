@@ -1,0 +1,22 @@
+bathandbody1;Banana Boat Sunscreen SPF50;7.44
+bathandbody2;Coppertone Sunscreen Lotion SPF50;7.87
+bathandbody3;Dove Moisture Body Wash, 14.5 fl oz (Pack of 2);6.88
+bathandbody4;Suave Men 3-in-1 Shampoo+Conditioner+Body Wash, 28 fl oz;2.88
+bathandbody5;Olay Body Wash, 23.6 fl oz;4.97
+bathandbody6;Germ-X Sanitizer, 10 oz;1.98
+bathandbody7;Germ-X Soft Wipes;1.98
+bathandbody8;Fusion Shaving Gel;3.94
+bathandbody9;Vaseline Cocoa Radiant Body Lotion, 20.3 fl oz;5.97
+bathandbody10;Suave Advanced Therapy Lotion, 32 fl oz;3.93
+bathandbody11;Neutrogena Oil-Free Acne Wash Cream Cleanser, 6 fl oz;7.19
+bathandbody12;Bath Sponge;2.00
+bathandbody13;Shower Cap;1.98
+bathandbody14;Natural Bristle Bath Brush;4.88
+bathandbody15;Eos Sweet Mint Lip Balm;2.96
+bathandbody16;Chapstick (3);2.94
+bathandbody17;Charmin Ultra Soft Toilet Paper, 12;11.97
+bathandbody18;Clorox Disinfecting Wipes;4.63
+bathandbody19;Irish Spring Bar Soap, 3ct;3.51
+bathandbody20;Irish Spring Body Wash;3.97
+bathandbody21;Bounty Paper Towels, White, 6pk;8.98
+bathandbody22;Puffs Basic Facial Tissues, 2pk;3.72

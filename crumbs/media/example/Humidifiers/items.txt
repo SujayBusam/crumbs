@@ -1,0 +1,5 @@
+humidifiers1;ProCare Cool Mist Humidifer;22.94
+humidifiers2;ProCare WF2 Humidifier Filter;5.44
+humidifiers3;Vick's Warm Mist Humidifier;25.00
+humidifiers4;Vick's Soothing Menthol VapoPads, 6pk;5.23
+

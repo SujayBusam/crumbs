@@ -1,0 +1,8 @@
+tacobellspecialties1;Mexican Pizza;4.47
+tacobellspecialties2;Crunchwrap Supreme;3.83
+tacobellspecialties3;Quesadilla (Chicken);4.34
+tacobellspecialties4;Quesadilla (Steak);4.47
+tacobellspecialties5;Meximelt;2.80
+tacobellspecialties6;Spicy Tostada;1.65
+tacobellspecialties7;Quesarito (Beef);3.19
+tacobellspecialties8;Quesadilla (Beef);4.20

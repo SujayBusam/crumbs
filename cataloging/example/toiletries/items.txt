@@ -1,0 +1,2 @@
+toiletries1;Toothbrush;2.50
+toiletries2;Toothpaste;3.00

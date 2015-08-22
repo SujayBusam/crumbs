@@ -1,0 +1,8 @@
+fragrances1;Body Fantasies White Must Fragrance Body Spray, 8 fl oz;4.96
+fragrances2;Designer Imposters Deodorant Body Spray, 2.5 oz;3.00
+fragrances3;Parfums De Coeur Capri Breeze Fragrance Deodorant Body Spray, 2.5 oz;2.98
+fragrances4;Old Spice Classic Cologne, 4.25 fl oz;7.47
+fragrances5;Bod Man Black Body Spray, 8 fl oz;6.98
+fragrances6;AXE Gold Temptation Body Spray, 4 oz;3.97
+fragrances7;Mitchum Men's Deodorant, 2pk;4.97
+fragrances8;Mitchum Women's Deodorant, 2pk;4.97

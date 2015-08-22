@@ -1,0 +1,20 @@
+makeup1;L’Oriel Paris True Match Super Blendable Liquid Makeup (18 colors);7.97
+makeup2;Maybelline Mineral Power Powder Foundation (6 colors);8.97
+makeup3;Clean and Clear Essentials Foaming Facial Cleanser, 8 fl oz;3.97
+makeup4;CoverGirl Smoothers Concealer;6.28
+makeup5;Maybelline Lash Sensational Mascara;6.94
+makeup6;Maybelline Unstoppable Eyeliner;5.94
+makeup7;Covergirl Plus Eye Pencil;5.24
+makeup8;L’Oreal Palette Eyeshadow, 01 Nude;15.84
+makeup9;Sally Hansen Hard as Nails Nail Color, Crystal Clear;1.97
+makeup10;Sally Hansen Hard as Nails Nail Color, Blackheart;1.97
+makeup11;Sally Hansen Hard as Nails Nail Color, No Hard Feelings;1.97
+makeup12;Sally Hansen Hard as Nails Nail Color, Hard to Get;1.97
+makeup13;Sally Hansen Hard as Nails Nail Color, Love Rocks;1.97
+makeup14;ONYX 100% Pure Acetone Nail Polish Remover, 16 fl oz;2.48
+makeup15;Revlon Compact Emery File;2.87
+makeup16;Revlon Lipstick (24 colors); 4.97
+makeup17;Rimmel Lipgloss (8 colors);3.97
+makeup18;Burt’s Bees Beeswax Lip Balm;2.97
+makeup19;Q-tips Cotton Swabs, 750 count;4.77
+makeup20;Neutrogena Makeup Removing Cleansing Towelettes, 25 count;4.97

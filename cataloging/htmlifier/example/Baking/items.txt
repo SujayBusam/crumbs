@@ -1,0 +1,23 @@
+baking1;Ghiradelli Brownie Mix;1.98
+baking2;Betty Crocker Chocolate Chip Cookie Mix;1.98
+baking3;Betty Crocker Oatmeal Cookie Mix;1.98
+baking4;Betty Crocker Red Velvet Cake Mix;1.28
+baking5;Crisco Vegetable Oil, 48 oz;2.78
+baking6;Pam Olive Oil Cooking Spray;2.78
+baking7;Bertolli Extra Virgin Olive Oil;7.90
+baking8;Great Value Cane Sugar, 10lb;5.48
+baking9;Hershey’s Chocolate Syrup;2.28
+baking10;Pillsbury Chocolate Fudge Frosting;1.56
+baking11;Pillsbury Milk Chocolate Frosting;1.56
+baking12;Pillsbury Vanilla Frosting;1.56
+baking13;McCormick Vanilla Extract, 16 fl oz;7.98
+baking14;McCormick Vanilla Extract, 2 fl oz;4.12
+baking15;Nestle Toll House Real Semi-Sweet Chocolate Chips, 12oz;2.64
+baking16;Nestle Toll House Real Milk Chocolate Chips, 11.5oz;2.50
+baking17;McCormick Black Pepper;3.25
+baking18;Morton Iodized Salt;0.86
+baking19;Great Value Graham 9” Pie Crust;1.50
+baking20;Jell-O Instant Chocolate Pudding;1.32
+baking21;Jell-O Strawberry Gelatin Dessert;1.32
+baking22;Arm and Hammer Baking Soda;2.24
+baking23;Heinz Apple Cider Vinegar, 32ox;2.12

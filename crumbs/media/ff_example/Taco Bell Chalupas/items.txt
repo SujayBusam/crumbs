@@ -1,0 +1,3 @@
+tacobellchalupas1;Chalupa Supreme (Chicken);3.83
+tacobellchalupas2;Chalupa Supreme (Beef);3.19
+tacobellchalupas3;Chalupa Supreme (Steak);4.08

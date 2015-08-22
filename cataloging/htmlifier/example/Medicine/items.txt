@@ -1,0 +1,14 @@
+medicine1;Nyquil Cold & Flu Relief;7.97
+medicine2;Dayquil Cold & Flu Relief;7.97
+medicine3;Tylenol Caplets, 100ct;8.95
+medicine4;Advil Ibuprofen;7.97;100ct
+medicine5;Mucinex Congestion Relief, 20ct;10.97
+medicine6;Benadryl Allergy Relief, 48ct;6.48
+medicine7;Zyrtec 24 hour Allergy Tablets, 14ct;12.94
+medicine8;Neosporin Antibiotic Ointment;6.47
+medicine9;Equate Hydrocortisone;4.94
+medicine10;Band-aids Flexible Fabric, 20ct;2.78
+medicine11;Plan B Emergency Contraceptive (Levonorgestrel);46.87
+medicine12;ZzzQuil Nighttime Sleep-Aid LiquiCaps, 24 count;7.47
+medicine13;Robitussin Congestion DM, 8ox;8.97
+medicine14;Nyquil Cold and Flu Liquigels (24ct);7.97

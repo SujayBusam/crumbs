@@ -53,7 +53,7 @@ app.post('/execute', routes.execute);
 app.post('/suggestion', routes.suggestion);
 app.get('/suggestions', routes.suggestions);
 app.get('/mission', routes.draft);
-app.get('/nibbles', routes.draft);
+app.get('/nibbles', routes.nibbles);
 app.post('/validatereferral', routes.validatereferral);
 app.get('/volunteer', routes.volunteer);
 

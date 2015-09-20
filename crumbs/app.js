@@ -9,6 +9,7 @@ var routes = require('./routes');
 var http = require('http');
 var path = require('path');
 var fs = require('fs');
+var mongoose = require('mongoose');
 
 var app = express();
 
@@ -57,6 +58,8 @@ app.get('/nibbles', routes.nibbles);
 app.post('/validatereferral', routes.validatereferral);
 app.get('/volunteer', routes.volunteer);
 
+// database
+mongoose.connect('mongodb://localhost/orders');
 
 http.createServer(app).listen(app.get('port'), function () {
   console.log('Express server listening on port ' + app.get('port'));

@@ -43,23 +43,25 @@ if ('development' === app.get('env')) {
 }
 
 // routes
-app.get('/', routes.draft);
-app.get('/sketch', routes.index);
+app.get('/', routes.index);
+app.get('/sketch', routes.originalIndex);
 app.post('/create', routes.create);
-app.get('/admin42', routes.admin); //TODO(sujay): Tmp security measure.
+app.get('/admin', routes.admin);
 app.post('/paypal', routes.paypal);
 app.get('/success', routes.success);
 app.get('/cancel', routes.cancel);
 app.post('/execute', routes.execute);
 app.post('/suggestion', routes.suggestion);
 app.get('/suggestions', routes.suggestions);
-app.get('/mission', routes.draft);
+app.get('/mission', routes.mission);
+app.get('/draft', routes.draft);
+app.get('/closed', routes.closed);
 app.get('/nibbles', routes.nibbles);
 app.post('/validatereferral', routes.validatereferral);
 app.get('/volunteer', routes.volunteer);
 
 // database
-mongoose.connect('mongodb://localhost/orders');
+// mongoose.connect('mongodb://localhost/orders');
 
 http.createServer(app).listen(app.get('port'), function () {
   console.log('Express server listening on port ' + app.get('port'));

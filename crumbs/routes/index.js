@@ -4,6 +4,9 @@ var paypal = require('paypal-rest-sdk');
 var config = {};
 var Order = require('../models/order');
 var Suggestion = require('../models/suggestion');
+
+var deliveryDays = [4, 6] // Wednesday and Friday
+
 // Routes
 
 exports.mission = function(req, res) {
@@ -20,16 +23,33 @@ exports.mission = function(req, res) {
 	});
 };
 
+exports.originalIndex = function(req, res) {
+	res.render('index');
+}
+
+// Reroute if not a delivery day
 exports.nibbles = function (req, res) {
 	res.render('nibbles');
 };
 
 exports.index = function (req, res) {
-  res.render('index');
+  var d = new Date();
+  var n = d.getDay();
+
+  if (deliveryDays.indexOf(n) != -1) {
+    // Is a delivery day
+    res.render('nibbles');
+  } else {
+    res.redirect('/closed');
+  }
 };
 
 exports.draft = function(req, res) {
 	res.render('draft');
+};
+
+exports.closed = function(req, res) {
+	res.render('closed');
 };
 
 exports.cancel = function (req, res) {

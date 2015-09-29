@@ -61,7 +61,7 @@ app.post('/validatereferral', routes.validatereferral);
 app.get('/volunteer', routes.volunteer);
 
 // database
-// mongoose.connect('mongodb://localhost/orders');
+mongoose.connect('mongodb://localhost/orders');
 
 http.createServer(app).listen(app.get('port'), function () {
   console.log('Express server listening on port ' + app.get('port'));

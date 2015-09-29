@@ -1,6 +1,8 @@
 import os
 import re
 
+blacklist = ["Panera Salads", "Panera Sandwiches", "KFC Meals"]
+
 header = open("header.ejs").read()
 footer = open("footer.ejs").read()
 
@@ -12,15 +14,12 @@ outfile.write('<div id="listContainer" style="max-height:200px;overflow-y:auto">
 outfile.write('<ul id="expList">\n')
 
 itemtypes = next(os.walk('ff_example'))[1]
+itemtypes = [x for x in itemtypes if x not in blacklist]
 itemtypes.sort()
 
 for itemtype in itemtypes:
-        if "Taco" in itemtype:
-            multiplier = 1.1
-            outfile.write('<li style="color:green">' + itemtype + "\n")
-        else:
-            multiplier = 1.2
-            outfile.write("<li> " + itemtype + "\n")
+        multiplier = 1.2
+        outfile.write("<li> " + itemtype + "\n")
         #outfile.write("<li> " + itemtype + "\n")
 	outfile.write("<ul>\n")
         itemtype_clean = re.sub(" ", "", itemtype.lower())

@@ -85,12 +85,12 @@ function getTotalCost() {
 function getAbsoluteCost() {
 	if (!referralApproval) {
 		var total = parseFloat(getTotalCost());
-		return (total + 2.00).toFixed(2);
+		return (total + 0.00).toFixed(2);
 	}
 	else {
 		var total = parseFloat(getTotalCost());
 		$("#bulkmsg").show();
-		return ((total + 2.00)* 0.9).toFixed(2);
+		return ((total + 0.00)* 0.9).toFixed(2);
 	}
 }
 
@@ -488,7 +488,7 @@ $("#checkoutbutton").click(function(){
 	<!-- fieldsets -->
 	<fieldset>
 		<div class="header">
-			<span id="logo">The Nibbles</span>
+			<span id="logo">The Crumbs</span>
 			<br>
 			<div>
 				<img src="mcdonalds.png" style="height:75px;width:75px">
@@ -498,7 +498,7 @@ $("#checkoutbutton").click(function(){
 				<img src="tacobell.jpg" style="height:75px;width:75px">
 			</div>
 			<br>
-			Order before 5:30pm, for guaranteed delivery by 8pm.
+			Order before 5:00pm, for guaranteed delivery by 8pm.
 		</div>
 		<br>
 			<div style="background-color:#FFF4D4">
@@ -777,7 +777,7 @@ $("#checkoutbutton").click(function(){
 		</table>
 		<br>
 		<div> Subtotal: <span class="runningtotal"> $0.00 </span> </div>
-		<div id="deliveryfeemsg"> + $2.00 delivery fee </div>
+		<div style="color:green" id="deliveryfeemsg"> + No Delivery Fee! </div>
 		<div id="bulkmsg" style="display:none"> <span style="color:green"> (+10% discount) </span> </div>
 		<br>
 		<div> Total: <span class="actualtotal"> $0.00 </span> </div>

@@ -11,7 +11,7 @@ outfile.write(header)
 outfile.write('<div id="listContainer" style="max-height:200px;overflow-y:auto">\n')
 outfile.write('<ul id="expList">\n')
 
-itemtypes = os.listdir("ff_example")
+itemtypes = next(os.walk('ff_example'))[1]
 itemtypes.sort()
 
 for itemtype in itemtypes:
